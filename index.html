@@ -1,0 +1,2386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AVANCEM/MADEMAN · Licitaciones</title>
+<meta name="theme-color" content="#22323F">
+<meta name="panel-version" content="v63">
+<meta name="description" content="Panel interno de licitaciones de AVANCEM">
+
+<!-- Icono de pestaña: engranaje del logo de MADEMAN GROUP.
+     favicon.png, favicon-180.png y favicon-oscuro.png van en la raíz del
+     repo, junto a index.html. Para usar la versión sobre fondo gris,
+     cambia favicon.png por favicon-oscuro.png en la línea de abajo. -->
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;450;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F8F9; --surface:#FFFFFF;
+  --ink:#0F161C; --ink-soft:#5D6B77; --ink-faint:#8A97A2;
+  --rule:#DDE3E8; --rule-soft:#EBEFF2;
+  --steel:#22323F; --steel-soft:#33475A;
+  --vista:#EAEEF0; --vista-edge:#C3CDD4;
+  --importante:#CDE8B0; --importante-edge:#5E9B28;
+  --signal:#0B6B70; --signal-soft:#E2F1F1;
+  /* El acento se usaba en dos contextos opuestos con una sola variable, y
+     no estaba definida: el navegador descartaba esas 19 reglas y los
+     botones se veian apagados y sin reaccion al pasar el raton.
+     --acento: sobre fondo claro (bordes y textos). Contraste 6.3 sobre blanco.
+     --acento-claro: sobre la barra oscura. Contraste 7.1 sobre el gris. */
+  --acento:#0B6B70; --acento-claro:#5FD0C4;
+  --alerta:#A24A12; --alerta-soft:#FBEDE3;
+  --row-h:38px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+/* El atributo hidden lo pisa cualquier regla de display propia (le paso al
+   modal, que lleva display:flex y se veia siempre). Con esto, hidden manda. */
+[hidden]{display:none !important}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13.5px;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;
+  /* Sin esto, secuencias como "(Actuación B)" o "8)" se sustituyen por
+     emoji al caer en una fuente con ligaduras de emoticono. */
+  font-variant-ligatures:none;font-variant-emoji:text;font-feature-settings:"liga" 0,"clig" 0,"dlig" 0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+.topbar{background:var(--steel);color:#EAF0F3;display:flex;align-items:center;gap:16px;padding:0 18px;height:52px;flex:0 0 auto}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-weight:600;letter-spacing:.14em;font-size:12.5px;text-transform:uppercase}
+.brand span{font-size:11.5px;color:#8FA6B4;letter-spacing:.04em}
+
+.mes-sel{position:relative;display:flex;align-items:center}
+.mes-sel select{appearance:none;background:#1A2833;color:#DCE7ED;border:1px solid #3C5266;border-radius:4px;padding:6px 30px 6px 11px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.05em;cursor:pointer}
+.mes-sel select:hover{border-color:#557088}
+.mes-sel select:focus{outline:2px solid #5FD0C4;outline-offset:1px}
+.mes-sel::after{content:"";position:absolute;right:11px;pointer-events:none;border:4px solid transparent;border-top-color:#7B93A3;margin-top:4px}
+
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.gauge{display:flex;align-items:center;gap:14px;background:#1A2833;border:1px solid #2F4353;border-radius:4px;padding:6px 12px;font-family:"IBM Plex Mono",monospace;font-size:11px}
+.gauge-block{display:flex;flex-direction:column;gap:3px;min-width:60px}
+.btn-recargar{appearance:none;border:1px solid #3E5464;background:transparent;color:#9FB2C0;font-family:inherit;font-size:11px;font-weight:600;padding:5px 11px;border-radius:4px;cursor:pointer;align-self:center;transition:border-color .13s,color .13s}
+.btn-recargar:hover{border-color:var(--acento-claro);color:var(--acento-claro)}
+.btn-recargar:disabled{opacity:.45;cursor:default}
+.btn-guardar{appearance:none;border:1px solid var(--acento-claro);background:transparent;color:var(--acento-claro);font-family:inherit;font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:4px;cursor:pointer;align-self:center;transition:background .13s,color .13s}
+.btn-guardar:hover{background:var(--acento-claro);color:#0F161C}
+.btn-guardar:disabled{opacity:.5;cursor:default}
+.gauge-label{color:#7B93A3;font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.gauge-val{color:#DCE7ED;font-size:12px;font-weight:500;line-height:1}
+.gauge-val.on{color:#5FD0C4}
+.pulse{width:6px;height:6px;border-radius:50%;background:#43616F;flex:0 0 auto}
+.pulse.active{background:#5FD0C4;animation:beat .9s ease-in-out infinite}
+@keyframes beat{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+
+.tabs{display:flex;align-items:stretch;background:var(--surface);border-bottom:1px solid var(--rule);padding:0 18px;flex:0 0 auto;overflow-x:auto}
+.tab{appearance:none;background:none;border:0;cursor:pointer;font-family:"IBM Plex Sans",sans-serif;font-size:13px;color:var(--ink-soft);padding:13px 15px 11px;border-bottom:2px solid transparent;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.tab:hover{color:var(--ink);background:var(--rule-soft)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--signal);font-weight:500}
+.tab.veto[aria-selected="true"]{border-bottom-color:var(--alerta)}
+.tab .n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;background:var(--rule-soft);color:var(--ink-soft);padding:2px 6px;border-radius:9px}
+.tab[aria-selected="true"] .n{background:var(--signal-soft);color:var(--signal)}
+.tab.veto[aria-selected="true"] .n{background:var(--alerta-soft);color:var(--alerta)}
+.tabs-right{margin-left:auto;display:flex;align-items:center;gap:10px;padding:8px 0}
+.f-cat{border:1px solid var(--rule);border-radius:4px;background:var(--surface);color:var(--ink-soft);font-family:inherit;font-size:12.5px;padding:6px 9px;max-width:210px;cursor:pointer}
+.f-cat:focus{outline:2px solid var(--acento);outline-offset:-1px}
+.f-cat.activo{border-color:var(--acento);color:var(--ink);font-weight:600}
+.buscar{border:1px solid var(--rule);border-radius:4px;background:var(--paper);padding:6px 10px;font-family:inherit;font-size:12.5px;color:var(--ink);width:230px}
+.buscar:focus{outline:2px solid var(--signal);outline-offset:-1px;background:#fff}
+
+.wrap{flex:1 1 auto;overflow:auto;padding:0 18px 40px}
+table{border-collapse:separate;border-spacing:0;width:100%;background:var(--surface)}
+thead th{position:sticky;top:0;z-index:3;background:var(--steel-soft);color:#DCE6EC;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;text-align:left;padding:9px 8px;border-bottom:1px solid var(--steel);white-space:nowrap}
+thead th.center{text-align:center;padding-left:4px;padding-right:4px}
+tbody td{padding:7px 8px;height:var(--row-h);border-bottom:1px solid var(--rule-soft);vertical-align:middle}
+tbody td.center{text-align:center;padding:0 4px}
+tbody tr{background:var(--surface)}
+tbody tr:hover{background:#F2F7F8}
+tbody tr.vista{background:var(--vista);color:var(--ink-soft)}
+tbody tr.vista:hover{background:#E2E7EA}
+tbody tr.importante{background:var(--importante)}
+tbody tr.importante:hover{background:#C0E09F}
+tbody tr.importante td:first-child{box-shadow:inset 3px 0 0 var(--importante-edge)}
+tbody tr.vista td:first-child{box-shadow:inset 3px 0 0 var(--vista-edge)}
+tbody tr.saliendo{opacity:0;transform:translateX(-8px);transition:opacity .28s,transform .28s}
+tbody tr.entrando{animation:aparece 1.2s ease}
+@keyframes aparece{from{background:#FFF3D0}to{background:inherit}}
+
+.titulo{display:block;font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+.organo{display:block;font-size:12px;color:var(--ink-soft);line-height:1.35;overflow-wrap:anywhere}
+tbody tr.importante .organo{color:#3D4F2E}
+.cat{font-size:10.5px;padding:2px 7px;border-radius:3px;display:inline-block;background:var(--rule-soft);color:var(--ink-soft);font-family:"IBM Plex Sans Condensed",sans-serif;letter-spacing:.03em}
+.cat.vacia{background:transparent;color:var(--ink-faint);font-style:italic}
+.num{font-size:12px;text-align:right;white-space:nowrap}
+.fecha{font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
+.plazo-corto{color:var(--alerta);font-weight:500}
+.enlace{color:var(--signal);text-decoration:none;font-size:11.5px;border-bottom:1px solid #B9DAD9}
+.enlace:hover{border-bottom-color:var(--signal)}
+
+.chk{appearance:none;width:15px;height:15px;border:1.5px solid #A8B4BD;border-radius:3px;background:#fff;cursor:pointer;display:inline-block;vertical-align:middle;position:relative;transition:background .12s,border-color .12s}
+.chk:hover{border-color:var(--signal)}
+.chk:checked{background:var(--signal);border-color:var(--signal)}
+.chk:checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.chk:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.chk.veto:checked{background:var(--alerta);border-color:var(--alerta)}
+.chk.veto:hover{border-color:var(--alerta)}
+
+.th-ia{padding:0!important}
+.btn-ia{width:100%;height:100%;appearance:none;border:0;cursor:pointer;background:var(--signal);color:#EAF6F6;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;padding:9px 6px;display:flex;align-items:center;justify-content:center;gap:5px;transition:background .15s}
+.btn-ia:hover:not(:disabled){background:#0A5A5E}
+.btn-ia:disabled{background:#4A6068;cursor:default}
+.ia-nota{background:var(--surface);border:1px solid var(--rule);border-radius:5px;padding:11px 15px;font-size:12.5px;color:var(--ink-soft,#555);margin-bottom:16px;max-width:1100px;line-height:1.5}
+.ia-ocupado{background:#FFF4E5;border:1px solid #F0C27B;border-radius:5px;padding:11px 15px;font-size:13px;color:#7A4A10;margin-bottom:16px;max-width:1100px}
+.ia-lic{margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)}
+.ia-lic-tit{font-weight:600;font-size:13.5px;line-height:1.35}
+.ia-lic-org{font-size:12px;color:var(--ink-faint);margin:3px 0 10px}
+.ia-fich summary{cursor:pointer;font-size:12.5px;font-weight:600;padding:4px 0}
+.ia-fich summary .n{font-weight:400;color:var(--ink-faint);margin-left:4px}
+.ia-f{display:flex;align-items:center;gap:7px;padding:5px 2px;font-size:12px;border-bottom:1px solid var(--rule);cursor:pointer}
+.ia-f.no{opacity:.55;cursor:default}
+.ia-f-n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ia-f-t{font-size:11px;color:var(--ink-faint);white-space:nowrap}
+.ia-f a{text-decoration:none;color:var(--acento)}
+.ia-marca{display:block;font-style:normal;font-size:11px;margin-top:6px;font-weight:600}
+.ia-marca.ok{color:#1E7A46;cursor:pointer}
+.ia-marca.mal{color:var(--alerta);cursor:pointer}
+.ia-marca.va{color:#9A6A10}
+.ia-resultado{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule)}
+.ia-resultado h4{margin:0 0 10px;font-size:13.5px}
+.ia-bajar{display:inline-block;text-decoration:none;margin-bottom:8px}
+.ia-omit{font-size:12px;margin-top:8px}
+.ia-omit ul{margin:4px 0 0 18px;padding:0}
+.ia-va{font-size:13px;display:flex;align-items:center;gap:8px}
+.ia-punto{width:9px;height:9px;border-radius:50%;background:#E0A030;animation:iaLatido 1.2s infinite}
+@keyframes iaLatido{0%,100%{opacity:.35}50%{opacity:1}}
+.hist-lic{border-bottom:1px solid var(--rule)}
+.hist-cab{display:flex;align-items:center;gap:6px;width:100%;background:none;border:0;
+  padding:7px 2px;cursor:pointer;text-align:left;font:inherit;font-size:12px;color:var(--ink)}
+.hist-cab:hover{background:var(--surface)}
+.hist-flecha{color:var(--ink-faint);width:10px;flex:0 0 10px}
+.hist-tit{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-lista{padding:0 0 6px 16px}
+.hist-item{display:block;width:100%;background:none;border:0;border-left:2px solid var(--rule);
+  padding:5px 8px;cursor:pointer;text-align:left;font:inherit;font-size:12px;color:var(--ink)}
+.hist-item:hover{border-left-color:var(--acento);background:var(--surface)}
+.hist-item small{display:block;color:var(--ink-faint);font-size:11px}
+.ia-reintento{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#B8860B;line-height:1}
+.btn-ia .dot{width:5px;height:5px;border-radius:50%;background:#8FE3DC}
+.btn-ia.corriendo .dot{animation:beat .8s ease-in-out infinite}
+.ia-estado{font-size:11px;color:var(--signal);white-space:nowrap}
+.ia-estado.hecho{color:#3F7A2E}
+
+.vetados{max-width:920px;padding:22px 0 40px}
+.vetados-cab{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.vetados-cab h2{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.vetados-cab .n{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-faint)}
+.vetados p.ayuda{color:var(--ink-soft);font-size:12.5px;margin-bottom:18px;max-width:640px;line-height:1.5}
+.veto-buscar{width:100%;max-width:380px;margin-bottom:14px;border:1px solid var(--rule);border-radius:4px;background:var(--surface);padding:8px 11px;font-family:inherit;font-size:13px}
+.veto-buscar:focus{outline:2px solid var(--alerta);outline-offset:-1px}
+.propia-campo{display:block;font-size:12.5px;font-weight:600;margin-top:14px}
+.propia-campo .veto-buscar{display:block;max-width:none;margin:6px 0 0;font-weight:400}
+.propia-nota{font-size:11.5px;font-weight:400;color:var(--ink-soft);margin-top:4px}
+.veto-lista{background:var(--surface);border:1px solid var(--rule);border-radius:5px;overflow:hidden}
+.veto-item{display:flex;align-items:center;gap:14px;padding:9px 14px;border-bottom:1px solid var(--rule-soft)}
+.veto-item:last-child{border-bottom:0}
+.veto-item:hover{background:#FBFCFC}
+.veto-item.saliendo{opacity:0;transform:translateX(10px);transition:opacity .3s,transform .3s}
+.veto-nombre{flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.veto-fecha{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap}
+.btn-desvetar{appearance:none;border:1px solid var(--rule);background:var(--surface);color:var(--ink-soft);font-family:inherit;font-size:11.5px;padding:5px 11px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:border-color .13s,color .13s,background .13s}
+.btn-desvetar:hover{border-color:var(--alerta);color:var(--alerta);background:var(--alerta-soft)}
+.btn-desvetar:focus-visible{outline:2px solid var(--alerta);outline-offset:1px}
+
+.btn-mas{appearance:none;border:1px solid var(--rule);background:var(--surface);color:var(--ink-soft);font-family:"IBM Plex Sans Condensed",sans-serif;font-size:10.5px;letter-spacing:.05em;padding:4px 9px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:border-color .13s,color .13s}
+.btn-mas:hover{border-color:var(--signal);color:var(--signal)}
+tr.detalle>td{background:#F4F8F8;border-bottom:1px solid var(--rule);padding:12px 16px 14px;height:auto}
+tr.importante+tr.detalle>td{background:#DCEDC6}
+tr.vista+tr.detalle>td{background:#EDF0F2}
+.det-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:11px 26px;max-width:1100px}
+.det-item{font-size:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.det-item b{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+.det-item span{overflow-wrap:anywhere;line-height:1.4}
+
+.cfg-sec{background:var(--surface);border:1px solid var(--rule);border-radius:5px;padding:16px 18px;margin-bottom:16px}
+.cfg-sec h3{font-size:13.5px;font-weight:600;margin-bottom:3px}
+.cfg-sec p.mini{font-size:11.5px;color:var(--ink-faint);margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--rule-soft);border:1px solid var(--rule);border-radius:3px;padding:3px 4px 3px 9px;font-family:"IBM Plex Mono",monospace;font-size:11.5px}
+.chip button{appearance:none;border:0;background:none;color:var(--ink-faint);cursor:pointer;font-size:13px;line-height:1;padding:1px 5px;border-radius:2px}
+.chip button:hover{color:#fff;background:var(--alerta)}
+.cfg-add{display:flex;gap:8px}
+.cfg-add input{border:1px solid var(--rule);border-radius:4px;padding:6px 10px;font-family:"IBM Plex Mono",monospace;font-size:12px;width:170px}
+.cfg-add input:focus{outline:2px solid var(--signal);outline-offset:-1px}
+.cfg-add button{appearance:none;border:1px solid var(--signal);background:var(--signal-soft);color:var(--signal);font-family:inherit;font-size:12px;font-weight:500;padding:6px 13px;border-radius:4px;cursor:pointer}
+.cfg-add button:hover{background:var(--signal);color:#fff}
+.cfg-fila{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:12.5px}
+.cfg-fila label{min-width:130px;color:var(--ink-soft)}
+.cfg-fila input{border:1px solid var(--rule);border-radius:4px;padding:6px 10px;font-family:"IBM Plex Mono",monospace;font-size:12px;width:150px}
+.cfg-sub{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin:12px 0 6px}
+
+.cuerpo{flex:1 1 auto;display:flex;min-height:0}
+.principal{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0}
+.lateral{flex:0 0 188px;background:#1A2833;border-right:1px solid #0E1A22;display:flex;flex-direction:column;padding:14px 0;gap:2px;overflow-y:auto}
+.lat-grupo{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:#5E7385;padding:12px 18px 6px}
+.lat-item{appearance:none;border:0;background:none;text-align:left;width:100%;cursor:pointer;font-family:inherit;font-size:13px;color:#A7BAC7;padding:10px 18px;display:flex;align-items:center;gap:10px;border-left:3px solid transparent;transition:background .12s,color .12s}
+.lat-item:hover{background:#22323F;color:#DCE7ED}
+.lat-item.activo{background:#22323F;color:#fff;border-left-color:var(--acento-claro);font-weight:500}
+.lat-item .ico{font-family:"IBM Plex Mono",monospace;font-size:11px;opacity:.75;width:15px;text-align:center;flex:0 0 auto}
+.lat-item .eti{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lat-item .beta{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;background:#33475A;color:#8FE3DC;border-radius:8px;padding:2px 6px}
+.lateral.plegada{flex:0 0 50px}
+.lateral.plegada .eti,.lateral.plegada .beta,.lateral.plegada .lat-grupo{display:none}
+.lateral.plegada .lat-cab{display:flex}
+.lateral.plegada .lat-item{justify-content:center;padding:12px 0}
+.lat-cab{display:flex;justify-content:flex-end;padding:0 10px 6px}
+.lateral.plegada .lat-cab{justify-content:center;padding:0 0 6px}
+.lat-flecha{appearance:none;border:0;background:none;color:#6E8697;cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:17px;line-height:1;padding:4px 7px;border-radius:4px;transition:background .12s,color .12s}
+.lat-flecha:hover{background:#22323F;color:#DCE7ED}
+@media (max-width:820px){
+  .lateral{flex:0 0 50px}
+  .lateral .eti,.lateral .beta,.lateral .lat-grupo{display:none}
+  .lateral .lat-cab{justify-content:center;padding:0 0 6px}
+  .lateral .lat-item{justify-content:center;padding:12px 0}
+}
+.foot{flex:0 0 auto;background:var(--surface);border-top:1px solid var(--rule);padding:8px 18px;display:flex;align-items:center;gap:16px;font-size:11.5px;color:var(--ink-soft)}
+.foot .sep{width:1px;height:14px;background:var(--rule)}
+.aviso{background:var(--alerta-soft);border:1px solid #E8C9AE;color:var(--alerta);padding:3px 9px;border-radius:3px;font-size:11.5px}
+.vacio{padding:60px 20px;text-align:center;color:var(--ink-faint)}
+.vacio b{display:block;color:var(--ink-soft);font-weight:500;margin-bottom:5px;font-size:14px}
+
+.toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.toast{background:var(--steel);color:#E6EEF2;padding:10px 14px;border-radius:4px;font-size:12.5px;box-shadow:0 6px 20px rgba(15,22,28,.24);display:flex;align-items:center;gap:9px;animation:sube .22s ease;max-width:420px;word-break:break-word}
+.toast b{font-weight:500}
+.toast.veto{background:var(--alerta)}
+@keyframes sube{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+@media (max-width:980px){
+  .gauge-block:nth-child(n+3){display:none}
+  .f-cat{border:1px solid var(--rule);border-radius:4px;background:var(--surface);color:var(--ink-soft);font-family:inherit;font-size:12.5px;padding:6px 9px;max-width:210px;cursor:pointer}
+.f-cat:focus{outline:2px solid var(--acento);outline-offset:-1px}
+.f-cat.activo{border-color:var(--acento);color:var(--ink);font-weight:600}
+.buscar{width:150px}
+  .brand span{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#portal{position:fixed;inset:0;background:var(--steel);display:flex;align-items:center;justify-content:center;z-index:100}
+/* Si ya hay clave (en la URL o guardada), el portal no llega a pintarse:
+   evita el parpadeo del recuadro a quien entra desde el enlace del correo. */
+html.con-clave #portal{display:none}
+.modal-fondo{position:fixed;inset:0;background:rgba(15,22,28,.55);display:flex;align-items:center;justify-content:center;z-index:60;padding:24px}
+.modal-caja{background:var(--surface);border-radius:8px;max-width:760px;width:100%;max-height:84vh;overflow:auto;padding:26px 30px;box-shadow:0 18px 60px rgba(15,22,28,.35)}
+.modal-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px}
+.modal-cab h3{font-size:15.5px;font-weight:600;line-height:1.4}
+.m-x{appearance:none;border:0;background:none;font-size:22px;color:var(--ink-faint);cursor:pointer;line-height:1;padding:2px 6px}
+.m-x:hover{color:var(--ink)}
+.m-meta{font-size:11.5px;color:var(--ink-faint);font-family:"IBM Plex Mono",monospace;margin-bottom:16px}
+.m-sec h4{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);margin:16px 0 7px}
+.m-texto{font-size:13.5px;line-height:1.65;white-space:pre-wrap;color:var(--ink)}
+.ver-analisis{appearance:none;border:0;background:none;font-family:inherit;cursor:pointer;padding:0}
+.doc-grupo h4{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);margin:18px 0 8px}
+.doc{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--rule);border-radius:4px;margin-bottom:7px;text-decoration:none;color:var(--ink);transition:border-color .12s,background .12s}
+.doc:hover{border-color:var(--acento);background:var(--rule-soft)}
+.doc-ico{font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;color:var(--acento);border:1px solid var(--acento);border-radius:3px;padding:2px 5px;flex:0 0 auto}
+.doc-nom{font-size:13px;overflow-wrap:anywhere;line-height:1.35}
+.doc-url{display:block;font-size:10.5px;color:var(--ink-faint);font-family:"IBM Plex Mono",monospace;margin-top:2px;overflow-wrap:anywhere}
+.btn-adj{appearance:none;border:1px solid var(--acento);background:transparent;color:var(--acento);font-family:inherit;font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;cursor:pointer}
+.btn-adj:hover{background:var(--acento);color:#fff}
+tbody tr.foco>td{background:#DCE6EC;box-shadow:inset 0 1px 0 var(--steel),inset 0 -1px 0 var(--steel)}
+tbody tr.foco>td:first-child{box-shadow:inset 5px 0 0 var(--steel),inset 0 1px 0 var(--steel),inset 0 -1px 0 var(--steel)}
+tbody tr.foco>td:last-child{box-shadow:inset -1px 0 0 var(--steel),inset 0 1px 0 var(--steel),inset 0 -1px 0 var(--steel)}
+tbody tr.foco.importante>td{background:#BBD9A8}
+tbody tr.foco.vista>td{background:#D3DDE4}
+tbody tr{scroll-margin-top:46px;scroll-margin-bottom:52px}
+#f-ver{opacity:.6;margin-left:0}
+.pista-teclado{color:var(--ink-faint);font-size:11px;font-family:"IBM Plex Mono",monospace;margin-left:auto;padding-right:4px}
+.pista-teclado kbd{background:var(--rule-soft);border:1px solid var(--rule);border-radius:3px;padding:1px 4px;font-size:10px;font-family:inherit;margin:0 1px}
+.barra-vetos{display:flex;align-items:center;gap:16px;padding:10px 18px;background:#FDF0E7;border-bottom:1px solid #E0A780;font-size:13px;color:#7A4A28;flex:0 0 auto}
+.barra-vetos b{color:#5C3218}
+.bv-botones{margin-left:auto;display:flex;gap:8px}
+tbody tr.pre-veto>td{background:#FBE3D4}
+tbody tr.pre-veto .organo{color:#8A5836;font-weight:600}
+tbody tr.pre-veto.foco>td{background:#F6D2BC}
+.conf-caja{background:var(--surface);border-radius:8px;max-width:430px;width:100%;padding:26px 28px 22px;box-shadow:0 18px 60px rgba(15,22,28,.35)}
+.conf-caja h3{font-size:15px;font-weight:600;margin-bottom:10px;line-height:1.4}
+.conf-texto{font-size:13px;line-height:1.6;color:var(--ink-soft);white-space:pre-line}
+.conf-botones{display:flex;gap:9px;justify-content:flex-end;margin-top:22px}
+.btn-sec,.btn-pri{appearance:none;font-family:inherit;font-size:12.5px;font-weight:600;padding:8px 17px;border-radius:4px;cursor:pointer}
+.btn-sec{border:1px solid var(--rule);background:transparent;color:var(--ink-soft)}
+.btn-sec:hover{background:var(--rule-soft)}
+.btn-pri{border:1px solid var(--ink);background:#ba0202;color:#F4F8F8}
+.btn-pri:hover{opacity:.85}
+.t-cambios{width:100%;border-collapse:collapse;font-size:12.5px}
+.t-cambios th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);padding:8px;border-bottom:1px solid var(--rule)}
+.t-cambios td{padding:9px 8px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+.t-cambios .c-titulo{max-width:420px;overflow-wrap:anywhere;line-height:1.4}
+.t-cambios .c-antes{color:var(--ink-faint)}
+.t-cambios .c-flecha{color:var(--ink-faint);padding:0 3px}
+.t-cambios a{color:var(--acento)}
+.t-ia{width:100%;border-collapse:collapse;font-size:12.5px}
+.t-ia th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);padding:8px;border-bottom:1px solid var(--rule)}
+.t-ia td{padding:10px 8px;border-bottom:1px solid var(--rule-soft);vertical-align:middle}
+.t-ia tr.importante{background:var(--importante);box-shadow:inset 3px 0 0 var(--importante-edge)}
+.t-ia tr.importante .ia-organo{color:#3D4F2E}
+.t-ia .ia-organo{width:24%;overflow-wrap:anywhere;line-height:1.4;color:var(--ink-soft)}
+.t-ia .ia-titulo{width:52%;overflow-wrap:anywhere;line-height:1.4}
+.t-ia .ia-id{display:block;font-size:10.5px;color:var(--ink-faint);margin-top:3px}
+.t-ia .ia-fuera{color:var(--ink-faint);font-style:italic}
+.btn-ver-ia{appearance:none;border:1px solid var(--acento);background:transparent;color:var(--acento);font-family:inherit;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:4px;cursor:pointer}
+.btn-ver-ia:hover{background:var(--acento);color:#fff}
+.ia-aviso{background:#FFF6E0;border:1px solid #E8CE93;color:#7A5B18;border-radius:5px;padding:13px 16px;font-size:12.5px;margin-bottom:22px;line-height:1.55;max-width:1100px}
+/* Los paneles normales van a 920px porque son listas estrechas. El
+   asistente son tres columnas y con ese corsé salían apelotonadas:
+   textos partidos en tres líneas con media pantalla vacía al lado. */
+#panel-asistente{max-width:1500px}
+.ia-cols{display:grid;grid-template-columns:minmax(260px,0.9fr) minmax(420px,1.5fr) minmax(280px,0.85fr);gap:22px;align-items:start}
+@media (max-width:1500px){.ia-cols{grid-template-columns:1fr 1.4fr 300px}}
+@media (max-width:1200px){.ia-cols{grid-template-columns:1fr 1.3fr}}
+@media (max-width:900px){.ia-cols{grid-template-columns:1fr}}
+.ia-caja{background:var(--surface);border:1px solid var(--rule);border-radius:5px;padding:20px 22px}
+.ia-caja h3{font-size:13.5px;font-weight:600;margin-bottom:3px}
+.ia-caja p.mini{font-size:11.5px;color:var(--ink-faint);margin-bottom:12px}
+.soltar{border:1.5px dashed var(--rule);border-radius:5px;padding:26px 16px;text-align:center;color:var(--ink-faint);font-size:12.5px;cursor:pointer;transition:border-color .13s,background .13s}
+.soltar:hover,.soltar.encima{border-color:var(--acento);background:var(--signal-soft);color:var(--signal)}
+.doc-lista{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.doc-fila{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:4px;padding:7px 10px;font-size:12.5px}
+.doc-fila .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-fila .p{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap}
+.doc-fila button{appearance:none;border:0;background:none;color:var(--ink-faint);cursor:pointer;font-size:15px;line-height:1;padding:0 3px}
+.doc-fila button:hover{color:var(--alerta)}
+.doc-fila .origen{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);border:1px solid var(--rule);border-radius:3px;padding:1px 5px}
+.acciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+@media (max-width:620px){.acciones{grid-template-columns:1fr}}
+.accion{text-align:left;appearance:none;background:var(--surface);border:1px solid var(--rule);border-radius:5px;padding:11px 13px;cursor:pointer;font-family:inherit;transition:border-color .13s,background .13s}
+.accion:hover:not(:disabled){border-color:var(--acento);background:var(--rule-soft)}
+.accion:disabled{opacity:.5;cursor:not-allowed}
+.accion b{display:block;font-size:12.5px;font-weight:600;margin-bottom:2px;color:var(--ink)}
+.accion span{display:block;font-size:11px;color:var(--ink-soft);line-height:1.4}
+.ia-salida{background:var(--surface);border:1px solid var(--rule);border-radius:5px;padding:18px;margin-top:18px;min-height:150px;font-size:13px;line-height:1.6;white-space:pre-wrap}
+.lic-lista{border:1px solid var(--rule);border-radius:5px;max-height:44vh;overflow:auto;margin:12px 0}
+.lic-fila{display:flex;align-items:flex-start;gap:11px;padding:10px 13px;border-bottom:1px solid var(--rule-soft);cursor:pointer}
+.lic-fila:last-child{border-bottom:0}
+.lic-fila:hover{background:var(--rule-soft)}
+.lic-fila.sel{background:var(--importante)}
+.lic-fila input{margin-top:3px;flex:0 0 auto}
+.lic-txt{flex:1;min-width:0}
+.lic-txt b{display:block;font-size:12.5px;font-weight:500;line-height:1.35;overflow-wrap:anywhere}
+.lic-txt span{display:block;font-size:11.5px;color:var(--ink-soft);margin-top:2px;overflow-wrap:anywhere}
+.lic-docs{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;margin-top:4px}
+.lic-vacio{padding:30px 16px;text-align:center;color:var(--ink-faint);font-size:12.5px}
+.ia-salida.vacia{color:var(--ink-faint);display:flex;align-items:center;justify-content:center;text-align:center;font-style:italic}
+</style>
+<script>
+(function(){
+  try{
+    var u = new URLSearchParams(location.search);
+    if(u.get("key") || localStorage.getItem("avancem_key")){
+      document.documentElement.className = "con-clave";
+    }
+  }catch(e){}
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><b>Avancem</b><span>Licitaciones</span></div>
+  <div class="mes-sel"><select id="mes" aria-label="Mes"></select></div>
+  <div class="topbar-right">
+    <button id="btn-salir" class="btn-recargar" title="Cerrar sesión y olvidar la clave de este navegador">Salir</button>
+    <div class="gauge">
+      <div class="pulse" id="pulse"></div>
+      <div class="gauge-block">
+        <span class="gauge-label">Actualizado</span>
+        <span class="gauge-val mono" id="g-refresh">—</span>
+      </div>
+      <div class="gauge-block">
+        <button id="btn-recargar" class="btn-recargar" title="Volver a leer el Sheet, saltándose la caché">Recargar</button>
+      </div>
+      <div class="gauge-block">
+        <span class="gauge-label">Guardado</span>
+        <span class="gauge-val mono" id="g-last">—</span>
+      </div>
+      <div class="gauge-block">
+        <span class="gauge-label">Pendientes</span>
+        <span class="gauge-val mono" id="g-pend">0</span>
+      </div>
+      <button id="btn-guardar" class="btn-guardar" hidden>Guardar ahora</button>
+    </div>
+  </div>
+</header>
+
+<div class="cuerpo">
+
+<aside class="lateral" id="lateral"></aside>
+
+<div class="principal">
+
+<nav class="tabs" role="tablist" id="tabs">
+  <div class="tabs-right">
+    <select class="f-cat" id="f-cat" aria-label="Filtrar por categoría"><option value="">Todas las categorías</option></select>
+    <input class="buscar" id="buscar" type="search" placeholder="Buscar órgano o título…" aria-label="Buscar">
+  </div>
+</nav>
+
+<div id="barra-vetos" class="barra-vetos" hidden>
+  <span id="bv-texto"></span>
+  <div class="bv-botones">
+    <button id="bv-cancelar" class="btn-sec">Cancelar</button>
+    <button id="bv-confirmar" class="btn-pri">Confirmar vetos</button>
+  </div>
+</div>
+
+<div class="wrap" id="wrap">
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th class="center" title="Marcar como revisada">Vista</th>
+        <th class="center" title="Marcar como importante">Import.</th>
+        <th class="center th-ia" style="min-width:118px">
+          <button class="btn-ia" id="btn-ia" title="Analiza las licitaciones marcadas en esta columna">
+            <span class="dot"></span><span id="btn-ia-txt">Análisis IA</span>
+          </button>
+        </th>
+        <th class="center" title="Añadir este organismo a la lista de vetados">Vetar</th>
+        <th style="width:20%">Órgano</th>
+        <th style="width:34%">Título</th>
+        <th>Categoría</th>
+        <th>Plazo</th>
+        <th style="text-align:right">Presupuesto</th>
+        <th>Estado</th>
+        <th class="center">Enlace</th>
+        <th class="center">Pliegos</th>
+        <th class="center" style="width:74px"></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="vacio" id="vacio" hidden><b>Nada por aquí</b>Ninguna licitación coincide con este filtro.</div>
+  <section class="vetados" id="panel-vetados" hidden></section>
+  <section class="vetados" id="panel-cambios" hidden></section>
+  <section class="vetados" id="panel-ia" hidden></section>
+  <section class="vetados" id="panel-asistente" hidden></section>
+  <section class="vetados" id="panel-config" hidden></section>
+</div>
+
+</div><!-- /principal -->
+</div><!-- /cuerpo -->
+
+<footer class="foot">
+  <span id="f-total">—</span>
+  <span class="sep"></span>
+  <span id="f-sel">—</span>
+  <span class="sep"></span>
+  <span id="f-nota">Los cambios se pintan al instante y se guardan por detrás, agrupados.</span>
+  <span class="pista-teclado" id="f-teclado">clic en una fila · <kbd>Espacio</kbd> o doble clic: ver más</span>
+  <span class="pista-teclado" id="f-usuario"></span>
+  <span class="pista-teclado" id="f-ver" title="Versión del panel">v63</span>
+  <span class="aviso" id="f-aviso" hidden></span>
+</footer>
+
+<div class="toasts" id="toasts"></div>
+
+<div id="portal">
+  <form id="portal-form" style="background:var(--surface);border-radius:6px;padding:28px 30px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div style="font-weight:600;letter-spacing:.14em;font-size:12.5px;text-transform:uppercase;margin-bottom:4px">Avancem</div>
+    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:18px">Panel de licitaciones</div>
+    <input id="portal-key" type="password" placeholder="Clave de acceso" autocomplete="current-password"
+      style="width:100%;border:1px solid var(--rule);border-radius:4px;padding:9px 11px;font-family:inherit;font-size:13.5px;margin-bottom:10px">
+    <button style="width:100%;appearance:none;border:0;background:var(--signal);color:#fff;padding:10px;border-radius:4px;font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer">Entrar</button>
+    <div id="portal-err" style="color:var(--alerta);font-size:12px;margin-top:10px;min-height:15px;word-break:break-word"></div>
+  </form>
+</div>
+
+<div id="modal-conf" class="modal-fondo" hidden>
+  <div class="conf-caja" role="alertdialog" aria-modal="true" aria-labelledby="conf-titulo">
+    <h3 id="conf-titulo"></h3>
+    <div id="conf-texto" class="conf-texto"></div>
+    <div class="conf-botones">
+      <button id="conf-no" class="btn-sec">Cancelar</button>
+      <button id="conf-si" class="btn-pri">Confirmar</button>
+    </div>
+  </div>
+</div>
+<div id="modal-lic" class="modal-fondo" hidden>
+  <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="lic-titulo">
+    <div class="modal-cab">
+      <h3 id="lic-titulo">Elegir licitación</h3>
+      <button id="lic-cerrar" class="m-x" aria-label="Cerrar">×</button>
+    </div>
+    <div class="m-meta">Solo se muestran las marcadas como Importante en la hoja de este mes. Se analiza una licitación cada vez.</div>
+    <input class="veto-buscar" id="lic-buscar" type="search"
+           placeholder="Buscar órgano o título…" aria-label="Buscar licitación">
+    <div id="lic-lista" class="lic-lista"></div>
+    <div class="conf-botones">
+      <button id="lic-cancelar" class="btn-sec">Cancelar</button>
+      <button id="lic-aceptar" class="btn-pri">Añadir</button>
+    </div>
+  </div>
+</div>
+<div id="modal-propia" class="modal-fondo" hidden>
+  <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="propia-titulo" style="max-width:560px">
+    <div class="modal-cab">
+      <h3 id="propia-titulo">Licitación propia</h3>
+      <button id="propia-cerrar" class="m-x" aria-label="Cerrar">×</button>
+    </div>
+    <div class="m-meta">Para licitaciones que no llegan por la hoja, como las de ITER o CERN. Después sube sus ficheros: PDF o Excel. Los .zip hay que descomprimirlos antes y los Word guardarlos como PDF.</div>
+    <label class="propia-campo">Título
+      <input class="veto-buscar" id="propia-tit" type="text" maxlength="200" placeholder="VVPSS Bleed Valve Assembly">
+    </label>
+    <label class="propia-campo">¿De qué órgano es esta licitación?
+      <input class="veto-buscar" id="propia-org" type="text" maxlength="120" list="organos-guia" placeholder="ITER, CERN, ALBA…">
+      <div class="propia-nota">Si el órgano tiene instrucciones propias, la memoria técnica se redacta con ellas.</div>
+    </label>
+    <datalist id="organos-guia"></datalist>
+    <label class="propia-campo">Expediente <span style="font-weight:400">(opcional)</span>
+      <input class="veto-buscar" id="propia-exp" type="text" maxlength="80" placeholder="IO/26/OT/10035495/JGO">
+    </label>
+    <div class="conf-botones">
+      <button id="propia-cancelar" class="btn-sec">Cancelar</button>
+      <button id="propia-aceptar" class="btn-pri">Crear</button>
+    </div>
+  </div>
+</div>
+<div id="modal-adj" class="modal-fondo" hidden>
+  <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="adj-titulo">
+    <div class="modal-cab">
+      <h3 id="adj-titulo"></h3>
+      <button id="adj-cerrar" class="m-x" aria-label="Cerrar">×</button>
+    </div>
+    <div class="m-meta" id="adj-meta"></div>
+    <div id="adj-lista"></div>
+  </div>
+</div>
+<div id="modal-analisis" class="modal-fondo" hidden>
+  <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="man-titulo" style="max-width:820px">
+    <div class="modal-cab">
+      <h3 id="man-titulo"></h3>
+      <button id="man-cerrar" class="m-x" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="m-meta" id="man-meta"></div>
+    <div id="man-docs" style="margin-bottom:10px"></div>
+    <div class="ia-salida" id="man-texto" style="max-height:52vh;overflow:auto;margin:0"></div>
+    <div class="conf-botones">
+      <button id="man-rehacer" class="btn-sec">Volver a lanzarlo</button>
+      <button id="man-ok" class="btn-pri">Cerrar</button>
+    </div>
+  </div>
+</div>
+<div id="modal-ia" class="modal-fondo" hidden>
+  <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="m-titulo">
+    <div class="modal-cab">
+      <h3 id="m-titulo"></h3>
+      <button id="m-cerrar" class="m-x" aria-label="Cerrar">×</button>
+    </div>
+    <div class="m-meta" id="m-meta"></div>
+    <div class="m-sec"><h4>Resumen</h4><div id="m-resumen" class="m-texto"></div></div>
+    <div class="m-sec"><h4>Análisis de solvencia</h4><div id="m-solvencia" class="m-texto"></div></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATOS DE EJEMPLO — en producción los sirve /api/licitaciones
+   ============================================================ */
+let MESES = [];
+let CLAVE = "";
+try { CLAVE = localStorage.getItem("avancem_key") || ""; } catch(e){}
+let SHEET_ID = null;
+let cfgCargada = false;
+
+const BASE = [];
+
+/* Blacklist de ejemplo — en producción sale de organismos_blacklist.json (Drive) */
+let vetados = [];
+let analisisIA = {};
+let cambiosEstado = [];
+let usuarioPanel = null;
+let rolPanel = "admin";
+let puedeIAPanel = false;
+const esIngeniero = () => rolPanel === "ingeniero";
+/* Los ingenieros entran en solo lectura: las casillas se pintan
+   deshabilitadas y el manejador ignora cualquier cambio. */
+/* Vista, Importante y Vetar quedan bloqueadas; la casilla de analisis
+   IA no, que es la que los ingenieros si usan. */
+const sold = () => esIngeniero() ? " disabled" : "";
+/* Vetos marcados pero aun sin confirmar. Clave: nombre normalizado, para
+   que dos filas del mismo organismo cuenten como un solo veto. */
+const vetosPend = new Map();
+
+function pintarBarraVetos(){
+  const barra = document.getElementById("barra-vetos");
+  const n = vetosPend.size;
+  barra.hidden = n === 0;
+  if(!n) return;
+  const claves = new Set(vetosPend.keys());
+  const filasFuera = filas.filter(r => claves.has(normVeto(r.organo))).length;
+  document.getElementById("bv-texto").innerHTML =
+    `<b>${n}</b> organismo${n>1?"s":""} marcado${n>1?"s":""} para vetar · `
+    + `desaparecerá${filasFuera>1?"n":""} <b>${filasFuera}</b> licitaci${filasFuera>1?"ones":"ón"} de esta hoja`;
+}
+
+/* Tras escribir en el Sheet, la copia cacheada en Vercel se queda vieja: si
+   recargas, el CDN te devuelve el estado ANTERIOR a tus cambios y parece que
+   no se guardaron. Apuntamos aqui en que meses hemos escrito, y la siguiente
+   lectura de ese mes se pide con fresco=1 (salta CDN y cache de funcion).
+   La marca se borra en cuanto se consigue una lectura fresca. */
+const CLAVE_ESCRITO = "avancem_escrito";
+const VIDA_MARCA_MS = 6 * 60 * 60 * 1000;
+
+function leerMarcas(){
+  try{ return JSON.parse(localStorage.getItem(CLAVE_ESCRITO) || "{}"); }
+  catch(e){ return {}; }
+}
+function marcarEscrito(mes){
+  if(!mes) return;
+  try{
+    const m = leerMarcas(); m[mes] = Date.now();
+    localStorage.setItem(CLAVE_ESCRITO, JSON.stringify(m));
+  }catch(e){}
+}
+function hayEscrituraSinVer(mes){
+  const ts = leerMarcas()[mes];
+  return !!ts && (Date.now() - ts) < VIDA_MARCA_MS;
+}
+function limpiarMarca(mes){
+  try{
+    const m = leerMarcas();
+    if(m[mes]){ delete m[mes]; localStorage.setItem(CLAVE_ESCRITO, JSON.stringify(m)); }
+  }catch(e){}
+}
+/* El panel tiene dos secciones grandes, no dos pestañas: "Licitaciones"
+   (la tabla y todo lo suyo) y "Asistente IA". Se cambia desde el menu de
+   la izquierda; las pestañas de arriba siguen siendo de la tabla. */
+let vista = "licitaciones";
+let lateralPlegada = false;
+try{ lateralPlegada = localStorage.getItem("avancem_lateral") === "1"; }catch(e){}
+let idFoco = null;
+let catFiltro = "";
+/* Vetos aun no confirmados en Drive. Sin esto, el refresco de 30s repobla
+   la lista desde Drive y "resucita" lo quitado hasta que la cola de 5 min
+   escriba. Se autolimpia cuando lo remoto ya refleja cada cambio. */
+const blPend = { anadir: new Map(), quitar: new Map() };
+function normVeto(s){
+  return String(s||"").replace(/\s*\((?:espa[nñ]a|spain)\)\s*$/i,"")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+}
+
+const PESTANAS = [
+  {k:"licitaciones", n:"Licitaciones", f:()=>true},
+  {k:"importantes",  n:"Importantes",  f:r=>r.importante},
+  {k:"avancem",      n:"Avancem",      f:r=>r.div.includes("avancem")},
+  {k:"mademan",      n:"Mademan",      f:r=>r.div.includes("mademan")},
+  {k:"icts",         n:"ICTS",         f:r=>r.fuente==="ICTS"},
+];
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+let filas = [];
+let pestana = "licitaciones";
+let busca = "", buscaVeto = "";
+let mesActual = "";
+const expandidas = new Set();
+/* Compara por nombre NORMALIZADO: la lista guarda "Consell Comarcal de
+   l'Alt Urgell" y la fila trae "... (España)", asi que la comparacion
+   exacta no casaba nunca y las filas vetadas seguian en la tabla.
+   Devuelve un objeto con .has() para no tocar los sitios que lo usan. */
+const setVetados = () => {
+  const s = new Set(vetados.map(v => normVeto(v.nombre)));
+  return { has: (organo) => s.has(normVeto(organo)), size: s.size };
+};
+
+let cfgBot = {coste_minimo:null, coste_maximo:null, destinatarios:[]};
+let cpvsCfg = {avancem:{exactos:[],familias:[]}, mademan:{exactos:[],familias:[]}};
+const NOMBRE_DIV = {avancem:"CPVs Avancem", mademan:"CPVs Mademan"};
+
+/* ============================================================
+   COLA DE ESCRITURA — pinta ya, escribe detrás, agrupado
+   ============================================================ */
+const LIMITE_MIN = 59, VENTANA_MS = 60000;
+const ESPERA_ESCRITURA_MS = 5 * 60 * 1000;
+let proximoVaciado = null;
+const cola = new Map();
+const sucias = new Set();
+let llamadas = [], temporizador = null, enVuelo = false, ultimoOk = null;
+
+function encolar(id, campo, valor){
+  const clave = `${id}:${campo}:${typeof valor === "string" ? valor : ""}`;
+  /* El titulo viaja solo para "importante": es el unico campo cuyo log
+     interesa leer luego licitacion a licitacion. Asi el servidor no
+     tiene que pedir a Sheets la columna de titulos en cada guardado. */
+  const item = {id, campo, valor};
+  if(campo === "importante"){
+    const f = filas.find(r => r.id === id);
+    if(f) item.titulo = f.titulo;
+  }
+  cola.set(clave, item);
+  sucias.add(`${id}:${campo}`);
+  if(!temporizador){
+    temporizador = setTimeout(vaciar, ESPERA_ESCRITURA_MS);
+    proximoVaciado = Date.now() + ESPERA_ESCRITURA_MS;
+  }
+  pintarGauge();
+}
+
+function programar(ms){
+  if(temporizador) clearTimeout(temporizador);
+  temporizador = setTimeout(vaciar, ms);
+  proximoVaciado = Date.now() + ms;
+}
+
+function llamadasEnVentana(){
+  const t = Date.now();
+  llamadas = llamadas.filter(x => t - x < VENTANA_MS);
+  return llamadas.length;
+}
+
+async function vaciar(){
+  if(temporizador){ clearTimeout(temporizador); temporizador = null; }
+  proximoVaciado = null;
+  if(enVuelo || cola.size === 0) return;
+  if(llamadasEnVentana() >= LIMITE_MIN){
+    const esperar = VENTANA_MS - (Date.now() - llamadas[0]) + 250;
+    avisar(`Límite de la hoja alcanzado. Reanudando en ${Math.ceil(esperar/1000)} s.`);
+    programar(esperar);
+    return;
+  }
+  const lote = [...cola.entries()];
+  cola.clear(); enVuelo = true; pintarGauge();
+  try{
+    await escribirEnHoja(lote.map(([,v])=>v));
+    llamadas.push(Date.now());
+    ultimoOk = new Date();
+    marcarEscrito(mesActual);
+    lote.forEach(([,c]) => sucias.delete(`${c.id}:${c.campo}`));
+    ocultarAviso();
+  }catch(e){
+    lote.forEach(([k,c]) => cola.set(k, c));
+    avisar("No se pudo guardar. Reintentando…");
+    programar(4000);
+  }finally{
+    enVuelo = false; pintarGauge();
+    if(cola.size && !temporizador) programar(ESPERA_ESCRITURA_MS);
+  }
+}
+
+/* En producción: POST /api/guardar -> la función de Vercel lo traduce a UN
+   values.batchUpdate con todas las celdas (y a la escritura del JSON de
+   vetados en Drive cuando el campo es 'anadir'/'quitar'). */
+async function escribirEnHoja(lote){
+  const r = await fetch("/api/guardar", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({key: CLAVE, sheet_id: SHEET_ID, cambios: lote}),
+  });
+  if(!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}
+
+/* ============================================================
+   REFRESCO AUTOMÁTICO cada 30 s
+   La función de Vercel responde con Cache-Control: s-maxage=30, así que
+   el CDN sirve la misma respuesta a todos: Google recibe 2 llamadas/min
+   haya 1 usuario o 30. Los cambios locales sin confirmar no se pisan.
+   ============================================================ */
+const REFRESCO_MS = 30000;
+let ultimoRefresco = new Date();
+
+function diasHasta(plazo){
+  const m = String(plazo||"").match(/(\d{2})-(\d{2})-(\d{4})/);
+  if(!m) return 99;
+  const d = new Date(`${m[3]}-${m[2]}-${m[1]}`);
+  return Math.ceil((d - new Date()) / 86400000);
+}
+
+async function refrescar(fresco){
+  const mesPedido = mesActual;
+  const forzar = fresco || hayEscrituraSinVer(mesPedido);
+  const payload = await leerDeHoja(mesPedido, forzar);
+  if(forzar) limpiarMarca(payload.mes || mesPedido);
+  llamadas.push(Date.now());
+  MESES = payload.meses;
+  mesActual = payload.mes;
+  SHEET_ID = payload.sheet_id;
+  poblarMeses();
+
+  let nuevas = 0;
+  const porId = new Map(filas.map(f=>[f.id,f]));
+  const idsRemotos = new Set();
+  payload.filas.forEach(rem=>{
+    rem.dias = diasHasta(rem.plazo);
+    idsRemotos.add(rem.id);
+    const local = porId.get(rem.id);
+    if(!local){ filas.push({...rem, _nueva: cfgCargada}); nuevas++; return; }
+    ["vista","importante","ia","iaEstado"].forEach(campo=>{
+      if(!sucias.has(`${rem.id}:${campo}`) && rem[campo] !== undefined) local[campo] = rem[campo];
+    });
+    Object.keys(rem).forEach(c=>{
+      if(!["vista","importante","ia","iaEstado"].includes(c)) local[c] = rem[c];
+    });
+  });
+  filas = filas.filter(f => idsRemotos.has(f.id));
+
+  analisisIA = payload.analisis || {};
+  usuarioPanel = payload.usuario || null;
+  rolPanel = payload.rol || "admin";
+  puedeIAPanel = payload.puede_ia !== false;
+  if(esIngeniero() && !["importantes","ia"].includes(pestana)){ pestana = "importantes"; }
+  cambiosEstado = payload.cambios || [];
+  let remotos = payload.vetados.map(n => typeof n === "string" ? {nombre:n, desde:""} : n);
+  const enRemoto = new Set(remotos.map(v=>normVeto(v.nombre)));
+  for(const k of [...blPend.quitar.keys()]) if(!enRemoto.has(k)) blPend.quitar.delete(k);
+  for(const k of [...blPend.anadir.keys()]) if(enRemoto.has(k)) blPend.anadir.delete(k);
+  remotos = remotos.filter(v => !blPend.quitar.has(normVeto(v.nombre)));
+  blPend.anadir.forEach((item, k) => { if(!enRemoto.has(k)) remotos.unshift(item); });
+  vetados = remotos;
+  cfgBot = payload.cfg ? {coste_minimo:payload.cfg.coste_minimo, coste_maximo:payload.cfg.coste_maximo,
+                          destinatarios:payload.cfg.destinatarios||[]} : cfgBot;
+  if(payload.cpvs){
+    cpvsCfg = {avancem: payload.cpvs.avancem || {exactos:[],familias:[]},
+               mademan: payload.cpvs.mademan || {exactos:[],familias:[]}};
+  }
+  ultimoRefresco = new Date();
+  pintar();
+  if(nuevas && cfgCargada) toast(`<b>${nuevas}</b> licitación${nuevas>1?"es":""} nueva${nuevas>1?"s":""}`);
+  cfgCargada = true;
+  pintarGauge();
+}
+
+/* En producción: GET /api/licitaciones?mes=YYYY-MM (respuesta cacheada 30 s) */
+async function leerDeHoja(mes, fresco){
+  // fresco=1 salta la cache del CDN y de la funcion: lo usa el boton de
+  // recargar, para ver al instante lo que alguien haya marcado en el Sheet.
+  const r = await fetch(`/api/datos?key=${encodeURIComponent(CLAVE)}&mes=${encodeURIComponent(mes||"")}`
+    + (fresco ? "&fresco=1" : ""));
+  let cuerpo = null;
+  try{ cuerpo = await r.json(); }catch(e){}
+  if(!r.ok){
+    const err = new Error((cuerpo && cuerpo.error) || `HTTP ${r.status}`);
+    err.status = r.status;
+    err.motivo = cuerpo && cuerpo.motivo;
+    err.paso = cuerpo && cuerpo.paso;
+    throw err;
+  }
+  return cuerpo;
+}
+
+function pintarGauge(){
+  const hhmm = d => d ? d.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit",second:"2-digit"}) : "—";
+  document.getElementById("g-refresh").textContent = hhmm(ultimoRefresco);
+  const eLast = document.getElementById("g-last");
+  if(enVuelo){
+    eLast.textContent = "…";
+  }else if(cola.size && proximoVaciado){
+    const seg = Math.max(0, Math.ceil((proximoVaciado - Date.now())/1000));
+    eLast.textContent = `en ${Math.floor(seg/60)}:${String(seg%60).padStart(2,"0")}`;
+  }else{
+    eLast.textContent = hhmm(ultimoOk);
+  }
+  eLast.className = "gauge-val mono" + (cola.size || enVuelo ? " on" : "");
+  const ePend = document.getElementById("g-pend");
+  ePend.textContent = String(cola.size);
+  ePend.className = "gauge-val mono" + (cola.size ? " on" : "");
+  const btnG = document.getElementById("btn-guardar");
+  btnG.hidden = !cola.size && !enVuelo;
+  btnG.disabled = enVuelo;
+  btnG.textContent = enVuelo ? "Guardando…" : "Guardar ahora";
+  document.getElementById("pulse").className = "pulse" + (enVuelo || cola.size ? " active" : "");
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function visibles(){
+  const p = PESTANAS.find(x=>x.k===pestana);
+  if(!p) return [];
+  const q = busca.trim().toLowerCase();
+  const v = setVetados();
+  return filas.filter(r => !v.has(r.organo) && p.f(r) &&
+    (!catFiltro || (catFiltro === "__sin__" ? !r.cat.trim() : r.cat === catFiltro)) &&
+    (!q || r.titulo.toLowerCase().includes(q) || r.organo.toLowerCase().includes(q)));
+}
+const eur = n => n.toLocaleString("es-ES",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+
+function pintarLateral(){
+  const cont = document.getElementById("lateral");
+  const items = [
+    {k:"licitaciones", ico:"▤", eti: esIngeniero() ? "Importantes" : "Licitaciones"},
+  ];
+  if(puedeIA()) items.push({k:"asistente", ico:"✦", eti:"Asistente IA", beta:true});
+
+  cont.innerHTML = `
+    <div class="lat-cab">
+      <button class="lat-flecha" id="lat-toggle"
+              title="${lateralPlegada ? "Desplegar menú" : "Plegar menú"}"
+              aria-label="${lateralPlegada ? "Desplegar menú" : "Plegar menú"}">
+        ${lateralPlegada ? "→" : "←"}
+      </button>
+    </div>`
+    + items.map(i=>`
+      <button class="lat-item ${vista === i.k ? "activo" : ""}" data-v="${i.k}" title="${esc(i.eti)}">
+        <span class="ico">${i.ico}</span>
+        <span class="eti">${esc(i.eti)}</span>
+        ${i.beta ? `<span class="beta">beta</span>` : ""}
+      </button>`).join("");
+
+  cont.className = "lateral" + (lateralPlegada ? " plegada" : "");
+
+  cont.querySelectorAll(".lat-item[data-v]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      if(vista === b.dataset.v) return;
+      vista = b.dataset.v;
+      pintar();
+    });
+  });
+  document.getElementById("lat-toggle").addEventListener("click", ()=>{
+    lateralPlegada = !lateralPlegada;
+    try{ localStorage.setItem("avancem_lateral", lateralPlegada ? "1" : "0"); }catch(e){}
+    pintarLateral();
+  });
+}
+
+function pintarPestanas(){
+  const cont = document.getElementById("tabs");
+  cont.querySelectorAll(".tab").forEach(n=>n.remove());
+  const right = cont.querySelector(".tabs-right");
+  const v = setVetados();
+  /* El ingeniero solo ve Importantes: el resto de pestanas no se pintan.
+     La barrera real esta en el servidor; esto es solo la interfaz. */
+  PESTANAS.filter(p => !esIngeniero() || p.k === "importantes").forEach(p=>{
+    const n = filas.filter(r => !v.has(r.organo) && p.f(r)).length;
+    const b = document.createElement("button");
+    b.className = "tab"; b.role = "tab";
+    b.setAttribute("aria-selected", p.k === pestana);
+    b.innerHTML = `${p.n}<span class="n">${n}</span>`;
+    b.onclick = () => { pestana = p.k; pintar(); };
+    cont.insertBefore(b, right);
+  });
+  const bi = document.createElement("button");
+  bi.className = "tab"; bi.role = "tab";
+  bi.setAttribute("aria-selected", pestana === "ia");
+  bi.innerHTML = `Análisis IA<span class="n">${Object.keys(analisisIA).length}</span>`;
+  bi.onclick = () => { pestana = "ia"; pintar(); };
+  cont.insertBefore(bi, right);
+  /* Cambios, Vetados y Configuracion no son para el ingeniero. La
+     pestana de Analisis IA de arriba si, que es la que usa. */
+  if(esIngeniero()) return;
+  const bx = document.createElement("button");
+  bx.className = "tab"; bx.role = "tab";
+  bx.setAttribute("aria-selected", pestana === "cambios");
+  bx.innerHTML = `Cambios de estado<span class="n">${cambiosEstado.length}</span>`;
+  bx.onclick = () => { pestana = "cambios"; pintar(); };
+  cont.insertBefore(bx, right);
+  const bv = document.createElement("button");
+  bv.className = "tab veto"; bv.role = "tab";
+  bv.setAttribute("aria-selected", pestana === "vetados");
+  bv.innerHTML = `Vetados<span class="n">${vetados.length}</span>`;
+  bv.onclick = () => { pestana = "vetados"; pintar(); };
+  cont.insertBefore(bv, right);
+  const bc = document.createElement("button");
+  bc.className = "tab"; bc.role = "tab";
+  bc.setAttribute("aria-selected", pestana === "config");
+  bc.innerHTML = `Configuración`;
+  bc.onclick = () => { pestana = "config"; pintar(); };
+  cont.insertBefore(bc, right);
+}
+
+function poblarCategorias(){
+  const sel = document.getElementById("f-cat");
+  const v = setVetados();
+  const p = PESTANAS.find(x=>x.k===pestana);
+  const base = filas.filter(r => !v.has(r.organo) && (!p || p.f(r)));
+  const cuenta = new Map();
+  let sinCat = 0;
+  base.forEach(r => {
+    const c = (r.cat || "").trim();
+    if(!c) sinCat++;
+    else cuenta.set(c, (cuenta.get(c) || 0) + 1);
+  });
+  const previo = catFiltro;
+  sel.innerHTML = `<option value="">Todas las categorías</option>`
+    + [...cuenta.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
+        .map(([c,n])=>`<option value="${esc(c)}">${esc(c)} (${n})</option>`).join("")
+    + (sinCat ? `<option value="__sin__">Sin categoría (${sinCat})</option>` : "");
+  // conservar la seleccion si sigue existiendo en esta pestaña
+  const existe = [...sel.options].some(o=>o.value === previo);
+  sel.value = existe ? previo : "";
+  if(!existe) catFiltro = "";
+  sel.className = "f-cat" + (catFiltro ? " activo" : "");
+}
+
+function pintarTabla(){
+  poblarCategorias();
+  const tb = document.getElementById("tbody");
+  const rs = visibles();
+  // Un fragmento fuera del documento: el navegador recalcula el diseño una
+  // vez al insertarlo, no una vez por cada una de las mil y pico filas.
+  const frag = document.createDocumentFragment();
+  tb.innerHTML = "";
+  const enTabla = !["vetados","config","cambios","ia"].includes(pestana);
+  document.getElementById("vacio").hidden = rs.length > 0 || !enTabla;
+
+  rs.forEach(r=>{
+    const tr = document.createElement("tr");
+    const preVeto = vetosPend.has(normVeto(r.organo));
+    tr.className = [r.importante && "importante", r.vista && "vista", r._nueva && "entrando",
+                    r.id === idFoco && "foco", preVeto && "pre-veto"].filter(Boolean).join(" ");
+    delete r._nueva;
+    tr.dataset.id = r.id;
+    /* Los que fallaron vienen ya marcados desde el servidor. Se senala
+       con el simbolo para que se vea que la marca no la ha puesto nadie:
+       es un reintento pendiente. */
+    const iaFallo = r.iaEstado === "error" ? "⚠"
+      : r.iaEstado === "sinpliegos" ? "ⓘ" : "";
+    const iaTitulo = r.iaEstado === "error"
+      ? "El análisis anterior falló. Queda marcada para reintentarlo."
+      : r.iaEstado === "sinpliegos"
+        ? "No se encontraron pliegos la última vez. Queda marcada para reintentarlo."
+        : "Marcar para análisis IA";
+    const iaCell = r.iaEstado === "listo"
+      ? `<button class="ia-estado hecho ver-analisis" title="Abrir el análisis">✓ Ver</button>`
+      : r.iaEstado === "corriendo" ? `<span class="ia-estado">…</span>`
+      : `<span class="ia-reintento" title="${esc(iaTitulo)}"
+           >${iaFallo}<input type="checkbox" class="chk" data-c="ia" ${r.ia?"checked":""} aria-label="${esc(iaTitulo)}"></span>`;
+    tr.innerHTML = `
+      <td class="center"><input type="checkbox" class="chk" data-c="vista" ${r.vista?"checked":""}${sold()} aria-label="Vista"></td>
+      <td class="center"><input type="checkbox" class="chk" data-c="importante" ${r.importante?"checked":""}${sold()} aria-label="Importante"></td>
+      <td class="center">${iaCell}</td>
+      <td class="center"><input type="checkbox" class="chk veto" data-c="veto" ${preVeto?"checked":""}${sold()} aria-label="Vetar organismo"></td>
+      <td><span class="organo" title="${esc(r.organo)}">${esc(r.organo)}</span></td>
+      <td><span class="titulo" title="${esc(r.titulo)}">${esc(r.titulo)}</span></td>
+      <td>${r.cat ? `<span class="cat">${esc(r.cat)}</span>` : `<span class="cat vacia">sin categoría</span>`}</td>
+      <td><span class="fecha mono ${r.dias<0?"plazo-pasado":r.dias<=10?"plazo-corto":""}">${r.plazo}</span></td>
+      <td class="num mono">${eur(r.imp)}</td>
+      <td>${r.dias < 0 && /plazo de presentaci|anuncio previo/i.test(r.estado)
+        ? `<span class="fecha estado-vencido" title="El Sheet dice «${esc(r.estado)}», pero el plazo venció y este mes ya no se actualiza">Plazo vencido</span>`
+        : `<span class="fecha">${r.estado}</span>`}</td>
+      <td class="center">${r.enlace
+        ? `<a class="enlace" href="${esc(r.enlace)}" target="_blank" rel="noopener">Abrir</a>`
+        : `<span class="fecha">—</span>`}</td>
+      <td class="center">${r.pcap
+        ? `<a class="enlace" href="${esc(r.pcap)}" target="_blank" rel="noopener">PCAP</a>` : ""}${r.ppt
+        ? ` <a class="enlace" href="${esc(r.ppt)}" target="_blank" rel="noopener">PPT</a>` : ""}${
+        !r.pcap && !r.ppt ? `<span class="fecha">—</span>` : ""}</td>
+      <td class="center"><button class="btn-mas" data-id="${r.id}">${expandidas.has(r.id)?"Cerrar":"Ver más"}</button></td>`;
+    frag.appendChild(tr);
+
+    if(expandidas.has(r.id)){
+      const det = document.createElement("tr");
+      det.className = "detalle";
+      det.innerHTML = `<td colspan="13"><div class="det-grid">
+        <div class="det-item"><b>Fecha publicación</b><span class="mono">${r.pub}</span></div>
+        <div class="det-item"><b>Fecha detectado</b><span class="mono">${r.det}</span></div>
+        <div class="det-item"><b>Fuente</b><span>${esc(r.fuente)}</span></div>
+        <div class="det-item"><b>CPVs</b><span class="mono">${esc(r.cpv)}</span></div>
+        <div class="det-item"><b>Puntuación</b><span class="mono">${r.punt}</span></div>
+        <div class="det-item"><b>ID expediente</b><span class="mono">${esc(r.idLegible || r.id)}</span></div>
+        <div class="det-item"><b>Adjuntos</b><span>${
+          (r.adj && r.adj.length) || r.masAdj
+            ? `<button class="btn-adj" data-adj="${esc(r.id)}">Ver${
+                r.adj && r.adj.length ? " " + r.adj.length : ""}</button>`
+            : "sin adjuntos"}</span></div>
+      </div></td>`;
+      frag.appendChild(det);
+    }
+  });
+  tb.appendChild(frag);
+
+  const v = setVetados();
+  const total = filas.filter(r=>!v.has(r.organo)).length;
+  document.getElementById("f-total").textContent = `${rs.length} de ${total} licitaciones`;
+  const marcadas = filas.filter(r=>r.ia && !v.has(r.organo)).length;
+  document.getElementById("f-sel").textContent = marcadas ? `${marcadas} marcada${marcadas>1?"s":""} para analizar` : "ninguna marcada para analizar";
+  document.getElementById("btn-ia").disabled = marcadas === 0;
+}
+
+function pintarVetados(){
+  const p = document.getElementById("panel-vetados");
+  const q = buscaVeto.trim().toLowerCase();
+  const lista = vetados.filter(v => !q || v.nombre.toLowerCase().includes(q));
+  p.innerHTML = `
+    <div class="vetados-cab">
+      <h2>Organismos vetados</h2>
+      <span class="n">${vetados.length} en la lista</span>
+    </div>
+    <p class="ayuda">Sus licitaciones no entran en la hoja. Al quitar uno de la lista, volverá
+      a aparecer en las siguientes pasadas del bot; las que ya se descartaron no se recuperan.</p>
+    <input class="veto-buscar" id="veto-buscar" type="search" placeholder="Buscar en la lista…"
+           value="${esc(buscaVeto)}" aria-label="Buscar organismo vetado">
+    <div class="veto-lista">${
+      lista.length ? lista.map(v=>`
+        <div class="veto-item" data-nombre="${esc(v.nombre)}">
+          <span class="veto-nombre" title="${esc(v.nombre)}">${esc(v.nombre)}</span>
+          <span class="veto-fecha">${v.desde}</span>
+          <button class="btn-desvetar">Quitar de la lista</button>
+        </div>`).join("")
+      : `<div class="vacio"><b>Sin coincidencias</b>Prueba con otro texto.</div>`
+    }</div>`;
+
+  const inp = document.getElementById("veto-buscar");
+  inp.addEventListener("input", e=>{
+    buscaVeto = e.target.value;
+    pintarVetados();
+    const n = document.getElementById("veto-buscar");
+    n.focus(); n.setSelectionRange(n.value.length, n.value.length);
+  });
+
+  p.querySelectorAll(".btn-desvetar").forEach(b=>{
+    b.addEventListener("click", async ()=>{
+      const item = b.closest(".veto-item");
+      const nombre = item.dataset.nombre;
+      const ok = await confirmar({
+        titulo: `¿Quitar a ${nombre} de la lista?`,
+        texto: "El bot volverá a recolectar sus licitaciones a partir de mañana.",
+        ok: "Confirmar",
+      });
+      if(!ok) return;
+      item.classList.add("saliendo");
+      vetados = vetados.filter(v=>v.nombre !== nombre);
+      blPend.quitar.set(normVeto(nombre), true);
+      blPend.anadir.delete(normVeto(nombre));
+      encolar("blacklist", "veto_quitar", nombre);
+      setTimeout(pintar, 300);
+      toast(`<b>${esc(nombre)}</b> ya no está vetado`);
+    });
+  });
+}
+
+function pintarConfig(){
+  const p = document.getElementById("panel-config");
+  const chips = (lista, grupo, tipo) => lista.map(v=>`
+    <span class="chip">${esc(v)}<button data-g="${esc(grupo)}" data-t="${tipo}" data-v="${esc(v)}" title="Quitar">×</button></span>`).join("");
+
+  p.innerHTML = `
+    <div class="vetados-cab"><h2>Configuración del bot</h2></div>
+    <p class="ayuda">Se guarda en Drive al momento; el bot lo aplica en su siguiente pasada (7:15).</p>
+    ${Object.entries(cpvsCfg).map(([grupo, c])=>`
+      <div class="cfg-sec">
+        <h3>${esc(NOMBRE_DIV[grupo] || grupo)}</h3>
+        <p class="mini">Los CPV exactos casan el código completo; las familias, cualquier código que empiece por el prefijo.</p>
+        <div class="cfg-sub">Exactos</div>
+        <div class="chips">${chips(c.exactos, grupo, "exactos") || '<span class="mini">ninguno</span>'}</div>
+        <div class="cfg-add"><input placeholder="p. ej. 42122450" data-g="${esc(grupo)}" data-t="exactos" maxlength="8"><button data-add>Añadir</button></div>
+        <div class="cfg-sub">Familias (prefijos)</div>
+        <div class="chips">${chips(c.familias, grupo, "familias") || '<span class="mini">ninguna</span>'}</div>
+        <div class="cfg-add"><input placeholder="p. ej. 4212" data-g="${esc(grupo)}" data-t="familias" maxlength="7"><button data-add>Añadir</button></div>
+      </div>`).join("")}
+    <div class="cfg-sec">
+      <h3>General</h3>
+      <p class="mini">Rango de presupuesto que entra en la hoja y destinatarios del correo diario.</p>
+      <div class="cfg-fila"><label>Coste mínimo (€)</label><input class="mono" id="cfg-min" inputmode="numeric" value="${cfgBot.coste_minimo ?? ""}" placeholder="sin mínimo"></div>
+      <div class="cfg-fila"><label>Coste máximo (€)</label><input class="mono" id="cfg-max" inputmode="numeric" value="${cfgBot.coste_maximo ?? ""}" placeholder="sin máximo"></div>
+      <div class="cfg-sub">Destinatarios del correo</div>
+      <div class="chips">${cfgBot.destinatarios.map(d=>`
+        <span class="chip">${esc(d)}<button data-g="general" data-t="destinatarios" data-v="${esc(d)}" title="Quitar">×</button></span>`).join("")}</div>
+      <div class="cfg-add"><input placeholder="correo@ejemplo.com" data-g="general" data-t="destinatarios" style="width:230px"><button data-add>Añadir</button></div>
+    </div>`;
+
+  p.querySelectorAll(".chip button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const {g, t, v} = b.dataset;
+      if(g === "general") cfgBot.destinatarios = cfgBot.destinatarios.filter(x=>x!==v);
+      else cpvsCfg[g][t] = cpvsCfg[g][t].filter(x=>x!==v);
+      encolar("config", `cfg:${g}:${t === "destinatarios" ? "dest" : t}_quitar`, v);
+      pintarConfig();
+      toast(`<b>${esc(v)}</b> eliminado`);
+    });
+  });
+
+  p.querySelectorAll("[data-add]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const inp = b.previousElementSibling;
+      const {g, t} = inp.dataset;
+      const v = inp.value.trim();
+      if(!v) return;
+      if(t !== "destinatarios" && !/^\d{2,8}$/.test(v)){ toast("Un CPV son solo dígitos"); return; }
+      if(t === "destinatarios" && !v.includes("@")){ toast("Eso no parece un correo"); return; }
+      const lista = g === "general" ? cfgBot.destinatarios : cpvsCfg[g][t];
+      if(lista.includes(v)){ toast(`<b>${esc(v)}</b> ya estaba`); inp.value=""; return; }
+      lista.push(v);
+      encolar("config", `cfg:${g}:${t === "destinatarios" ? "dest" : t}_anadir`, v);
+      pintarConfig();
+      toast(`<b>${esc(v)}</b> añadido`);
+    });
+  });
+
+  ["cfg-min","cfg-max"].forEach(id=>{
+    p.querySelector("#"+id).addEventListener("change", e=>{
+      const v = e.target.value.trim() === "" ? null : parseInt(e.target.value,10) || null;
+      if(id==="cfg-min") cfgBot.coste_minimo = v; else cfgBot.coste_maximo = v;
+      encolar("config", `cfg:general:${id === "cfg-min" ? "coste_minimo" : "coste_maximo"}`, v);
+      toast("Rango de coste actualizado");
+    });
+  });
+}
+
+function pintar(){
+  // Si se pierde el permiso (otra clave), volver a Licitaciones
+  if(vista === "asistente" && !puedeIA()) vista = "licitaciones";
+  pintarLateral();
+
+  if(vista === "asistente"){
+    // El asistente ocupa toda la zona de contenido: fuera pestañas, tabla
+    // y los paneles de la seccion de licitaciones.
+    document.getElementById("tabs").hidden = true;
+    document.getElementById("barra-vetos").hidden = true;
+    document.getElementById("tabla").hidden = true;
+    document.getElementById("vacio").hidden = true;
+    ["panel-vetados","panel-config","panel-cambios","panel-ia"]
+      .forEach(id => { document.getElementById(id).hidden = true; });
+    document.getElementById("panel-asistente").hidden = false;
+    document.getElementById("f-teclado").hidden = true;
+    pintarAsistente();
+    document.getElementById("f-total").textContent = "Asistente IA (beta)";
+    document.getElementById("f-sel").textContent = `${ficherosIA.filter(f => f.sel).length} fichero(s)`;
+    document.getElementById("f-nota").textContent =
+      "El análisis lo hace n8n en segundo plano; los prompts van fijos allí. "
+      + "Revisa siempre el resultado contra el pliego.";
+    const eu0 = document.getElementById("f-usuario");
+    eu0.textContent = usuarioPanel ? `· ${usuarioPanel} ·` : "";
+    pintarGauge();
+    return;
+  }
+
+  document.getElementById("tabs").hidden = false;
+  document.getElementById("panel-asistente").hidden = true;
+  const modo = pestana === "vetados" ? "vetados" : pestana === "config" ? "config"
+    : pestana === "cambios" ? "cambios" : pestana === "ia" ? "ia" : "tabla";
+  document.getElementById("tabla").hidden = modo !== "tabla";
+  document.getElementById("panel-vetados").hidden = modo !== "vetados";
+  document.getElementById("panel-config").hidden = modo !== "config";
+  document.getElementById("panel-cambios").hidden = modo !== "cambios";
+  document.getElementById("panel-ia").hidden = modo !== "ia";
+  if(modo !== "tabla") document.getElementById("vacio").hidden = true;
+  document.getElementById("f-teclado").hidden = modo !== "tabla";
+  if(modo !== "tabla"){ document.getElementById("barra-vetos").hidden = true; }
+  else pintarBarraVetos();
+  const eu = document.getElementById("f-usuario");
+  eu.textContent = usuarioPanel ? `· ${usuarioPanel} ·` : "";
+  if(modo === "cambios") pintarCambios();
+  if(modo === "ia") pintarPanelIA();
+  document.getElementById("buscar").style.visibility = modo === "tabla" ? "visible" : "hidden";
+  document.getElementById("f-cat").style.visibility = modo === "tabla" ? "visible" : "hidden";
+  document.getElementById("f-nota").textContent =
+    modo === "vetados" ? "La lista se guarda en Drive; el bot la lee cada mañana antes de recolectar."
+    : modo === "config" ? "La configuración se guarda en Drive; el bot la aplica en su siguiente pasada."
+    : modo === "cambios" ? "El bot registra aquí cada cambio de estado que detecta en su pasada diaria."
+    : modo === "ia" ? "Todos los análisis de esta hoja. En verde, las marcadas como importantes."
+    : "Los cambios se pintan al instante y se guardan en la hoja a los 5 minutos, todos agrupados.";
+  pintarPestanas();
+  if(modo === "vetados"){
+    document.getElementById("vacio").hidden = true;
+    pintarVetados();
+    document.getElementById("f-total").textContent = `${vetados.length} organismos vetados`;
+    document.getElementById("f-sel").textContent = "—";
+  }else if(modo === "config"){
+    document.getElementById("vacio").hidden = true;
+    pintarConfig();
+    document.getElementById("f-total").textContent = "Configuración";
+    document.getElementById("f-sel").textContent = "—";
+  }else if(modo === "cambios"){
+    document.getElementById("vacio").hidden = true;
+    document.getElementById("f-total").textContent = `${cambiosEstado.length} cambios de estado`;
+    document.getElementById("f-sel").textContent = "—";
+  }else if(modo === "ia"){
+    document.getElementById("vacio").hidden = true;
+    document.getElementById("f-total").textContent = `${Object.keys(analisisIA).length} análisis`;
+    document.getElementById("f-sel").textContent = "—";
+
+  }else{
+    pintarTabla();
+  }
+  pintarGauge();
+}
+
+/* ============================================================
+   INTERACCIÓN
+   ============================================================ */
+/* Atajo de teclado: Espacio despliega el "Ver mas" de la fila marcada.
+   Pulsa el mismo boton que el raton, asi que se comporta igual. */
+function pulsarEnFoco(selector){
+  if(!idFoco) return;
+  const tr = document.querySelector(`tbody tr[data-id="${CSS.escape(idFoco)}"]`);
+  const el = tr && tr.querySelector(selector);
+  if(el) el.click();
+}
+
+function escribiendo(){
+  const a = document.activeElement;
+  if(!a) return false;
+  return a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT" || a.isContentEditable;
+}
+
+window.addEventListener("keydown", e=>{
+  // Ni escribiendo, ni con un dialogo abierto, ni fuera de la tabla
+  if(escribiendo() || e.ctrlKey || e.metaKey || e.altKey) return;
+  if(!document.getElementById("modal-conf").hidden) return;
+  if(!document.getElementById("modal-ia").hidden) return;
+  if(!document.getElementById("modal-adj").hidden) return;
+  if(!document.getElementById("modal-analisis").hidden) return;
+  if(!document.getElementById("modal-lic").hidden) return;
+  if(document.getElementById("tabla").hidden) return;
+
+  // Solo Espacio: despliega el detalle de la fila seleccionada con el raton.
+  if(e.key === " " || e.code === "Space"){
+    if(!idFoco) return;
+    e.preventDefault();          // si no, la barra desplaza la pagina
+    pulsarEnFoco(".btn-mas");
+  }
+});
+
+document.getElementById("tbody").addEventListener("dblclick", e=>{
+  // Doble clic en la fila = "Ver más". Se ignora sobre controles, o el
+  // doble clic marcaria y desmarcaria la casilla sin que se note.
+  if(e.target.closest("input, button, a, select, label")) return;
+  const tr = e.target.closest("tr[data-id]");
+  if(!tr) return;
+  e.preventDefault();
+  window.getSelection().removeAllRanges();   // el doble clic selecciona texto
+  idFoco = tr.dataset.id;
+  const b = tr.querySelector(".btn-mas");
+  if(b) b.click();
+});
+
+document.getElementById("tbody").addEventListener("click", e=>{
+  const fila = e.target.closest("tr[data-id]");
+  if(fila && fila.dataset.id !== idFoco){
+    idFoco = fila.dataset.id;
+    document.querySelectorAll("tbody tr.foco").forEach(t=>t.classList.remove("foco"));
+    fila.classList.add("foco");
+  }
+  const bAdj = e.target.closest(".btn-adj");
+  if(bAdj){
+    const r = filas.find(x=>x.id === bAdj.dataset.adj);
+    if(r) abrirDocumentos(r);
+    return;
+  }
+  const ver = e.target.closest(".ver-analisis");
+  if(ver){
+    const tr = ver.closest("tr");
+    const r = filas.find(x=>x.id===tr.dataset.id);
+    if(r) abrirAnalisis(r);
+    return;
+  }
+  const btn = e.target.closest(".btn-mas");
+  if(!btn) return;
+  const id = btn.dataset.id;
+  expandidas.has(id) ? expandidas.delete(id) : expandidas.add(id);
+  pintarTabla();
+});
+
+document.getElementById("tbody").addEventListener("change", async e=>{
+  const chk = e.target.closest(".chk");
+  if(!chk) return;
+  if(esIngeniero() && chk.dataset.c !== "ia"){ chk.checked = !chk.checked; return; }
+  const tr = chk.closest("tr");
+  const r = filas.find(x=>x.id===tr.dataset.id);
+  if(!r) return;
+  const campo = chk.dataset.c;
+
+  if(campo === "veto"){
+    // No se veta al instante: se acumula y se confirma todo junto desde la
+    // barra de arriba. Asi se pueden marcar varios sin un dialogo por cada uno.
+    const k = normVeto(r.organo);
+    if(chk.checked) vetosPend.set(k, r.organo);
+    else vetosPend.delete(k);
+    // Marcar TODAS las filas del mismo organismo, no solo esta
+    document.querySelectorAll("tbody tr[data-id]").forEach(t=>{
+      const f = filas.find(x=>x.id === t.dataset.id);
+      if(!f) return;
+      const pend = vetosPend.has(normVeto(f.organo));
+      t.classList.toggle("pre-veto", pend);
+      const c = t.querySelector('.chk[data-c="veto"]');
+      if(c) c.checked = pend;
+    });
+    pintarBarraVetos();
+    return;
+  }
+
+  r[campo] = chk.checked;
+  tr.className = [r.importante && "importante", r.vista && "vista"].filter(Boolean).join(" ");
+  encolar(r.id, campo, chk.checked);
+
+  const p = PESTANAS.find(x=>x.k===pestana);
+  if(!p.f(r)){ tr.classList.add("saliendo"); setTimeout(pintar, 280); }
+  else {
+    // La clase de la fila ya se ha actualizado arriba; repintar las mil y pico
+    // filas solo para eso era el grueso del tiron al marcar casillas.
+    if(r.id === idFoco) tr.classList.add("foco");
+    pintarPestanas();
+    const vv = setVetados();
+    const m = filas.filter(x=>x.ia && !vv.has(x.organo)).length;
+    document.getElementById("f-sel").textContent =
+      m ? `${m} marcada${m>1?"s":""} para analizar` : "ninguna marcada para analizar";
+    document.getElementById("btn-ia").disabled = m === 0;
+  }
+});
+
+document.getElementById("btn-ia").addEventListener("click", async ()=>{
+  const v = setVetados();
+  const marcadas = filas.filter(r=>r.ia && !v.has(r.organo));
+  if(!marcadas.length) return;
+  const btn = document.getElementById("btn-ia"), txt = document.getElementById("btn-ia-txt");
+  btn.classList.add("corriendo"); btn.disabled = true;
+  txt.textContent = `Analizando ${marcadas.length}`;
+
+  /* Las que fallaron se pintan marcadas, pero en el Sheet la celda sigue
+     teniendo el texto del error, no TRUE. El bot lee el Sheet y busca
+     TRUE, asi que sin esto encuentra "0 licitaciones pendientes". Aqui se
+     escribe la marca de verdad ANTES de disparar el analisis. */
+  const reintentos = marcadas.filter(
+    r => r.iaEstado === "error" || r.iaEstado === "sinpliegos"
+  );
+  reintentos.forEach(r => { encolar(r.id, "ia", true); r.iaEstado = null; });
+
+  if(temporizador) clearTimeout(temporizador);
+  await vaciar();
+  try{
+    const r = await fetch("/api/analisis", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({key: CLAVE, sheet_id: SHEET_ID}),
+    });
+    let data = await r.json();
+    if(!r.ok) throw new Error(data.error || "HTTP " + r.status);
+
+    if(data.status === "quota_warning"){
+      // Render avisa de cuota, pero con DeepSeek y el fallback a Gemini el
+      // limite real no es fiable: confirmamos automaticamente y seguimos.
+      const r2 = await fetch("/api/analisis", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({key: CLAVE, queue_token: data.queue_token}),
+      });
+      data = await r2.json();
+      if(!r2.ok) throw new Error(data.error || "HTTP " + r2.status);
+    }
+
+    if(data.status === "empty"){
+      toast(data.message || "No hay licitaciones marcadas para analizar.");
+      btn.classList.remove("corriendo"); txt.textContent = "Análisis IA"; pintarTabla();
+      return;
+    }
+
+    marcadas.forEach(x=>{ x.iaEstado = "corriendo"; x.ia = false; });
+    pintarTabla();
+    iniciarSondeo();
+    toast(`Análisis lanzado para <b>${marcadas.length}</b> licitación${marcadas.length>1?"es":""}`);
+  }catch(e){
+    toast(`No se pudo lanzar el análisis: ${esc(e.message)}`);
+  }
+  btn.classList.remove("corriendo"); txt.textContent = "Análisis IA"; pintarTabla();
+});
+
+/* ============================================================
+   ASISTENTE IA
+
+   Quien lo ve lo decide el servidor (ASISTENTE_USUARIOS y el rol) y
+   lo manda en payload.puede_ia. Esconderlo aqui es solo interfaz: la
+   comprobacion de verdad la hacen /api/lanzar, /api/estado y
+   /api/subida en cada peticion.
+
+   El analisis lo hace n8n: el panel manda la accion y los ficheros,
+   n8n escribe el resultado en estado_asistente.json y el panel lo lee.
+   ============================================================ */
+/* Quien ve el asistente lo decide el servidor con ASISTENTE_USUARIOS y
+   el rol. Antes habia aqui una lista de nombres a mano, que obligaba a
+   tocar el HTML cada vez que entraba alguien nuevo. */
+/* Se normalizan los dos lados: la lista se escribe a mano y es facil poner
+   "David" mientras el usuario llega como "david". Antes solo se pasaba a
+   minusculas el usuario, asi que cualquier nombre con mayuscula no casaba. */
+const _norm = (x) => String(x || "").trim().toLowerCase();
+const puedeIA = () => puedeIAPanel;
+
+const ACCIONES_IA = [
+  {id:"resumen",      nombre:"Resumen y viabilidad",
+   desc:"Informe interno completo con veredicto GO / NO GO."},
+  {id:"presupuesto",  nombre:"Presupuestar",
+   desc:"Costes desglosados por WBS, listos para pasar a Excel."},
+  {id:"organizacion", nombre:"Organizar la oferta",
+   desc:"Plan de trabajo con fechas y desglose de los sobres."},
+  {id:"memoria",      nombre:"Redactar memoria técnica",
+   desc:"Genera el borrador desde el pliego, con huecos [COMPLETAR] para los ingenieros."},
+  {id:"solvencia",    nombre:"Analizar solvencia",
+   desc:"Requisitos exigidos y si los cumplimos, uno a uno."},
+  {id:"riesgos",      nombre:"Riesgos y penalizaciones",
+   desc:"Garantías, penalizaciones y cláusulas a mirar dos veces."},
+  {id:"criterios",    nombre:"Criterios de adjudicación",
+   desc:"Reparto de puntos y dónde se gana la licitación."},
+  {id:"preguntas",    nombre:"Dudas para el órgano",
+   desc:"Preguntas a plantear antes de presentar la oferta."},
+];
+
+let licSel = new Set();
+let licCallback = null;
+
+function abrirSelectorLic(alAceptar){
+  licSel = new Set();
+  licCallback = alAceptar;
+  document.getElementById("lic-buscar").value = "";
+  pintarSelectorLic();
+  document.getElementById("modal-lic").hidden = false;
+  document.getElementById("lic-buscar").focus();
+}
+
+function candidatasLic(){
+  const v = setVetados();
+  const q = document.getElementById("lic-buscar").value.trim().toLowerCase();
+  return filas.filter(r => r.importante && !v.has(r.organo)
+    && (!q || r.titulo.toLowerCase().includes(q) || r.organo.toLowerCase().includes(q)));
+}
+
+function pintarSelectorLic(){
+  const cont = document.getElementById("lic-lista");
+  const lista = candidatasLic();
+  if(!lista.length){
+    cont.innerHTML = `<div class="lic-vacio">No hay licitaciones marcadas como Importante
+      ${document.getElementById("lic-buscar").value.trim() ? "que coincidan con la búsqueda" : "en este mes"}.</div>`;
+  }else{
+    cont.innerHTML = lista.map(r=>{
+      const docs = [r.pcap && "PCAP", r.ppt && "PPT",
+                    (r.adj && r.adj.length) ? `${r.adj.length} adjunto${r.adj.length>1?"s":""}` : null
+                   ].filter(Boolean).join(" · ") || "sin documentos";
+      return `<div class="lic-fila ${licSel.has(r.id)?"sel":""}" data-id="${esc(r.id)}">
+        <input type="radio" name="lic-sel" ${licSel.has(r.id)?"checked":""} tabindex="-1">
+        <div class="lic-txt">
+          <b>${esc(r.titulo)}</b>
+          <span>${esc(r.organo)}</span>
+          <div class="lic-docs">${esc(docs)}</div>
+        </div>
+      </div>`;
+    }).join("");
+    cont.querySelectorAll(".lic-fila").forEach(f=>{
+      f.addEventListener("click", ()=>{
+        const id = f.dataset.id;
+        // Seleccion unica: elegir otra sustituye a la anterior.
+        if(licSel.has(id)) licSel.clear(); else licSel = new Set([id]);
+        pintarSelectorLic();
+      });
+    });
+  }
+  const b = document.getElementById("lic-aceptar");
+  b.textContent = licSel.size ? "Analizar esta" : "Elige una";
+  b.disabled = licSel.size === 0;
+}
+
+function cerrarSelectorLic(){
+  document.getElementById("modal-lic").hidden = true;
+  licCallback = null;
+}
+
+document.getElementById("lic-buscar").addEventListener("input", pintarSelectorLic);
+document.getElementById("lic-cerrar").addEventListener("click", cerrarSelectorLic);
+document.getElementById("lic-cancelar").addEventListener("click", cerrarSelectorLic);
+document.getElementById("modal-lic").addEventListener("click", e=>{
+  if(e.target.id === "modal-lic") cerrarSelectorLic();
+});
+document.getElementById("lic-aceptar").addEventListener("click", ()=>{
+  const elegidas = filas.filter(r => licSel.has(r.id));
+  const cb = licCallback;
+  cerrarSelectorLic();
+  if(cb && elegidas.length) cb(elegidas);
+});
+
+let licIA = null;
+let ficherosIA = [];
+
+const ORGANOS_SUGERIDOS = ["ITER", "CERN", "ALBA", "ESS", "F4E", "FAIR", "HZB", "IFMIF-DONES", "CIEMAT", "INTA"];
+
+function idPropia(titulo, organo){
+  const base = normVeto(titulo) + "|" + normVeto(organo);
+  let h = 5381;
+  for(let i = 0; i < base.length; i++) h = ((h * 33) ^ base.charCodeAt(i)) >>> 0;
+  return "propia-" + h.toString(36);
+}
+
+function abrirPropia(){
+  document.getElementById("organos-guia").innerHTML = ORGANOS_SUGERIDOS.map(o => `<option value="${esc(o)}">`).join("");
+  ["propia-tit", "propia-org", "propia-exp"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("modal-propia").hidden = false;
+  document.getElementById("propia-tit").focus();
+}
+
+function cerrarPropia(){ document.getElementById("modal-propia").hidden = true; }
+
+function crearPropia(){
+  const titulo = document.getElementById("propia-tit").value.trim();
+  const organo = document.getElementById("propia-org").value.trim();
+  const expediente = document.getElementById("propia-exp").value.trim();
+  if(!titulo){ toast("Pon el título de la licitación."); document.getElementById("propia-tit").focus(); return; }
+  if(!organo){ toast("Indica de qué órgano es."); document.getElementById("propia-org").focus(); return; }
+  cerrarPropia();
+  elegirLicitacion({ id: idPropia(titulo, organo), titulo, organo, idLegible: expediente, propia: true });
+}
+
+document.getElementById("propia-cerrar").addEventListener("click", cerrarPropia);
+document.getElementById("propia-cancelar").addEventListener("click", cerrarPropia);
+document.getElementById("propia-aceptar").addEventListener("click", crearPropia);
+document.getElementById("modal-propia").addEventListener("click", e => { if(e.target.id === "modal-propia") cerrarPropia(); });
+document.getElementById("modal-propia").addEventListener("keydown", e => { if(e.key === "Enter" && e.target.tagName === "INPUT") crearPropia(); });
+let estadoIA = null;
+let lanzadaIA = null;
+let sondeoIA = null;
+let relojIA = null;
+let histAbierta = null;
+let listaAbierta = true;
+
+const NO_SOPORTADO = /\.(zip|rar|7z|docx?|xlsx?|xml|odt|ods|dwg|dgn|dxf|jpe?g|png|tiff?)$/i;
+const PISTAS_PLIEGO = ["pcap", "ppt", "pliego", "clausula", "prescripciones",
+  "administrativas", "tecnicas", "cuadro de caracteristicas"];
+const sinTildes = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const pareceUnPliego = n => PISTAS_PLIEGO.some(t => sinTildes(n).includes(t));
+const nombreAccion = id => (ACCIONES_IA.find(a => a.id === id) || {}).nombre || id;
+const fechaCorta = iso => {
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" });
+};
+const fechaLarga = iso => {
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
+    + " " + d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+};
+const haceMin = iso => Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 60000));
+const textoHace = iso => { const m = haceMin(iso); return m < 1 ? "menos de un minuto" : m === 1 ? "1 minuto" : `${m} minutos`; };
+const estadoDe = (licId, accion) =>
+  estadoIA && estadoIA.licitaciones && estadoIA.licitaciones[licId]
+    && estadoIA.licitaciones[licId].acciones ? estadoIA.licitaciones[licId].acciones[accion] || null : null;
+const enlaceDescarga = id => `/api/archivo?key=${encodeURIComponent(CLAVE)}&id=${encodeURIComponent(id)}`;
+
+async function leerRespuesta(r){
+  const bruto = await r.text();
+  let d = null;
+  try { d = JSON.parse(bruto); }
+  catch(e){
+    throw new Error(r.status === 504 ? "El servidor tardó demasiado en responder"
+      : `Respuesta no válida del servidor (HTTP ${r.status})`);
+  }
+  if(!r.ok){ const e = new Error(d.error || `HTTP ${r.status}`); e.status = r.status; e.datos = d; throw e; }
+  return d;
+}
+const apiIA = (ruta, cuerpo) => fetch(`${ruta}?key=${encodeURIComponent(CLAVE)}`,
+  cuerpo ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo) } : {}
+).then(leerRespuesta);
+
+function elegirLicitacion(r){
+  licIA = r;
+  ficherosIA = [];
+  if(r.pcap) ficherosIA.push({ nombre: "PCAP.pdf", etiqueta: "PCAP", url: r.pcap, soportado: true, sel: true });
+  if(r.ppt) ficherosIA.push({ nombre: "PPT.pdf", etiqueta: "PPT", url: r.ppt, soportado: true, sel: true });
+  const sinBase = !r.pcap && !r.ppt;
+  for(const a of (r.adj || [])){
+    const soportado = !NO_SOPORTADO.test(a.nombre || "");
+    ficherosIA.push({
+      nombre: a.nombre || "Anexo", etiqueta: "Anexo", url: a.url, soportado,
+      sel: soportado && (pareceUnPliego(a.nombre) || (sinBase && /\.pdf$/i.test(a.nombre || ""))),
+    });
+  }
+  lanzadaIA = null;
+  listaAbierta = true;
+  pintarLicIA();
+  pintarEstadoIA();
+}
+
+async function cargarEstadoIA(){
+  try { estadoIA = await apiIA("/api/estado"); }
+  catch(e){ if(!estadoIA) estadoIA = { licitaciones: {}, ocupado: null, error: e.message }; }
+  if(vista === "asistente") pintarEstadoIA();
+  gestionarSondeo();
+}
+
+function hayQueSondear(){
+  if(!estadoIA) return false;
+  if(estadoIA.ocupado) return true;
+  if(lanzadaIA){ const e = estadoDe(lanzadaIA.licId, lanzadaIA.accion); return !e || e.estado === "procesando"; }
+  return false;
+}
+
+function gestionarSondeo(){
+  const activo = vista === "asistente" && !document.hidden && hayQueSondear();
+  if(activo){
+    if(!sondeoIA) sondeoIA = setInterval(cargarEstadoIA, 10000);
+    if(!relojIA) relojIA = setInterval(() => { pintarOcupado(); pintarResultado(); }, 5000);
+  } else {
+    if(sondeoIA){ clearInterval(sondeoIA); sondeoIA = null; }
+    if(relojIA){ clearInterval(relojIA); relojIA = null; }
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if(vista === "asistente" && !document.hidden) cargarEstadoIA();
+  else gestionarSondeo();
+});
+
+function pintarAsistente(){
+  const p = document.getElementById("panel-asistente");
+  p.innerHTML = `
+    <div class="vetados-cab"><h2>Asistente IA</h2></div>
+    <div class="ia-nota">
+      Elige una licitación, marca los ficheros y pulsa una acción. El análisis se hace
+      en segundo plano: puedes cerrar la página y el resultado quedará en el historial.
+      Revisa siempre el documento contra el pliego antes de usarlo.
+    </div>
+    <div id="ia-ocupado" class="ia-ocupado" hidden></div>
+    <div class="ia-cols">
+      <div class="ia-caja">
+        <h3>Documentos</h3>
+        <button class="btn-guardar" id="ia-abrir-lic"
+                style="border-color:var(--acento);color:var(--acento);width:100%">
+          Elegir de Importantes…
+        </button>
+        <button class="btn-guardar" id="ia-propia" style="width:100%;margin-top:8px">
+          Licitación propia…
+        </button>
+        <div id="ia-lic"></div>
+        <div class="soltar" id="ia-soltar" style="margin-top:12px">
+          Arrastra aquí PDF o Excel propios, o haz clic para elegirlos
+          <input type="file" id="ia-file" multiple accept=".pdf,.xlsx,.xls" hidden>
+        </div>
+      </div>
+      <div class="ia-caja">
+        <h3>Acciones</h3>
+        <p class="mini">Cada botón lanza un análisis con su prompt fijo en n8n.</p>
+        <div class="acciones" id="ia-acciones"></div>
+        <div id="ia-resultado" class="ia-resultado" hidden></div>
+      </div>
+      <div class="ia-caja">
+        <h3>Historial</h3>
+        <p class="mini">Último resultado de cada acción, por licitación.</p>
+        <div id="ia-hist"><p class="mini">Cargando…</p></div>
+      </div>
+    </div>`;
+
+  document.getElementById("ia-abrir-lic").addEventListener("click", () => {
+    abrirSelectorLic(elegidas => elegirLicitacion(elegidas[0]));
+  });
+  document.getElementById("ia-propia").addEventListener("click", abrirPropia);
+  const zona = document.getElementById("ia-soltar");
+  const input = document.getElementById("ia-file");
+  zona.addEventListener("click", () => input.click());
+  input.addEventListener("change", e => { subirManual(e.target.files); input.value = ""; });
+  ["dragenter", "dragover"].forEach(ev => zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.add("encima"); }));
+  ["dragleave", "drop"].forEach(ev => zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.remove("encima"); }));
+  zona.addEventListener("drop", e => { if(e.dataTransfer) subirManual(e.dataTransfer.files); });
+
+  pintarLicIA();
+  pintarEstadoIA();
+  cargarEstadoIA();
+}
+
+function pintarLicIA(){
+  const c = document.getElementById("ia-lic");
+  if(!c) return;
+  if(!licIA){
+    c.innerHTML = `<p class="mini" style="margin-top:12px">Elige una licitación para ver sus ficheros.</p>`;
+    actualizarPie();
+    return;
+  }
+  const marcados = ficherosIA.filter(f => f.sel).length;
+  c.innerHTML = `
+    <div class="ia-lic">
+      <div class="ia-lic-tit">${esc(licIA.titulo)}</div>
+      <div class="ia-lic-org">${esc(licIA.organo || "")}${licIA.idLegible ? ` · ${esc(licIA.idLegible)}` : ""}</div>
+      <details class="ia-fich" ${listaAbierta ? "open" : ""}>
+        <summary>Ficheros a analizar <span class="n">${marcados} de ${ficherosIA.length}</span></summary>
+        ${ficherosIA.length ? ficherosIA.map((f, i) => `
+          <label class="ia-f ${f.soportado ? "" : "no"}">
+            <input type="checkbox" data-i="${i}" ${f.sel ? "checked" : ""} ${f.soportado && !f.subiendo ? "" : "disabled"}>
+            <span class="ia-f-n" title="${esc(f.nombre)}">${esc(f.nombre)}</span>
+            <span class="ia-f-t">${f.subiendo ? "subiendo…" : f.manual ? "subido" : f.soportado ? esc(f.etiqueta) : "no se analiza"}</span>
+            ${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener" title="Abrir">↗</a>` : ""}
+            ${f.manual && !f.subiendo ? `<button class="m-x" data-quitar="${i}" title="Quitar">&times;</button>` : ""}
+          </label>`).join("") : `<p class="mini">${licIA.propia ? "Sube los ficheros de la licitación (PDF o Excel)." : "La hoja no tiene ficheros para esta licitación. Sube los PDF a mano."}</p>`}
+      </details>
+    </div>`;
+  c.querySelector("details").addEventListener("toggle", e => { listaAbierta = e.target.open; });
+  c.querySelectorAll("input[type=checkbox]").forEach(ch => ch.addEventListener("change", () => {
+    ficherosIA[Number(ch.dataset.i)].sel = ch.checked;
+    pintarLicIA();
+  }));
+  c.querySelectorAll("[data-quitar]").forEach(b => b.addEventListener("click", e => {
+    e.preventDefault();
+    ficherosIA.splice(Number(b.dataset.quitar), 1);
+    pintarLicIA();
+  }));
+  actualizarPie();
+}
+
+function actualizarPie(){
+  const e = document.getElementById("f-sel");
+  if(e && vista === "asistente") e.textContent = `${ficherosIA.filter(f => f.sel).length} fichero(s)`;
+}
+
+const TIPOS_SUBIDA = {
+  pdf: "application/pdf",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  xls: "application/vnd.ms-excel",
+};
+
+async function subirManual(lista){
+  const files = Array.from(lista || []);
+  if(!licIA){ toast("Elige primero la licitación, de Importantes o propia."); return; }
+  for(const f of files){
+    const ext = ((/\.([a-z0-9]+)$/i.exec(f.name) || [])[1] || "").toLowerCase();
+    const tipo = TIPOS_SUBIDA[ext];
+    if(!tipo){
+      toast(`<b>${esc(f.name)}</b>: solo se admiten PDF y Excel. Los .zip, descomprímelos; los Word, guárdalos como PDF.`);
+      continue;
+    }
+    const item = { nombre: f.name, etiqueta: "Propio", manual: true, soportado: true, sel: true, subiendo: true };
+    ficherosIA.push(item);
+    pintarLicIA();
+    try {
+      const { uploadUrl } = await apiIA("/api/subida", { nombre: f.name, tipo, tamano: f.size });
+      const r = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": tipo }, body: f });
+      if(!r.ok) throw new Error(`Drive respondió HTTP ${r.status}`);
+      const meta = await r.json();
+      if(!meta.id) throw new Error("Drive no devolvió el id del fichero");
+      item.driveId = meta.id;
+      item.subiendo = false;
+    } catch(e){
+      ficherosIA.splice(ficherosIA.indexOf(item), 1);
+      toast(`No se pudo subir <b>${esc(f.name)}</b>: ${esc(String(e.message || e))}`);
+    }
+    pintarLicIA();
+  }
+}
+
+function pintarEstadoIA(){
+  pintarOcupado();
+  pintarAcciones();
+  pintarResultado();
+  pintarHistorialIA();
+}
+
+function pintarOcupado(){
+  const c = document.getElementById("ia-ocupado");
+  if(!c) return;
+  const o = estadoIA && estadoIA.ocupado;
+  if(!o){ c.hidden = true; return; }
+  c.hidden = false;
+  c.innerHTML = `<b>Sistema en uso.</b> Analizando ${esc(nombreAccion(o.accion))} de
+    «${esc(o.titulo)}» desde hace ${textoHace(o.desde)}. Espera a que termine para lanzar otro.`;
+}
+
+function pintarAcciones(){
+  const c = document.getElementById("ia-acciones");
+  if(!c) return;
+  const ocupado = estadoIA && estadoIA.ocupado;
+  c.innerHTML = ACCIONES_IA.map(a => {
+    const e = licIA ? estadoDe(licIA.id, a.id) : null;
+    let marca = "";
+    if(e && e.estado === "listo") marca = `<em class="ia-marca ok" data-ver="${a.id}">Hecho el ${fechaCorta(e.fecha)} · Ver</em>`;
+    else if(e && e.estado === "error") marca = `<em class="ia-marca mal" data-ver="${a.id}">Falló el ${fechaCorta(e.fecha)} · Ver</em>`;
+    else if(e && e.estado === "procesando") marca = `<em class="ia-marca va">Analizando…</em>`;
+    return `<button class="accion" data-accion="${a.id}" ${!licIA || ocupado ? "disabled" : ""}>
+      <b>${esc(a.nombre)}</b><span>${esc(a.desc)}</span>${marca}
+    </button>`;
+  }).join("");
+  c.querySelectorAll(".accion").forEach(b => b.addEventListener("click", () => lanzarIA(b.dataset.accion)));
+  c.querySelectorAll("[data-ver]").forEach(m => m.addEventListener("click", ev => {
+    ev.stopPropagation();
+    abrirDetalleIA(licIA.id, m.dataset.ver);
+  }));
+}
+
+async function lanzarIA(accion){
+  if(!licIA){ toast("Elige primero una licitación."); return; }
+  if(ficherosIA.some(f => f.subiendo)){ toast("Espera a que terminen de subirse los ficheros."); return; }
+  const docs = ficherosIA.filter(f => f.sel && f.soportado && (f.url || f.driveId));
+  if(!docs.length){ toast("Marca al menos un fichero para analizar."); return; }
+  const previo = estadoDe(licIA.id, accion);
+  if(previo && previo.estado === "listo"){
+    const seguir = await confirmar({
+      titulo: `${nombreAccion(accion)} ya está hecho`,
+      texto: `Hay uno del ${fechaLarga(previo.fecha)}. ¿Quieres lanzar otro? El anterior seguirá en la carpeta de Drive de la licitación.`,
+      ok: "Lanzar otro",
+    });
+    if(!seguir) return;
+  }
+  lanzadaIA = { licId: licIA.id, accion };
+  const cuerpo = {
+    accion,
+    licitacion: { id: licIA.id, expediente: licIA.idLegible || "", titulo: licIA.titulo, organo: licIA.organo || "" },
+    documentos: docs.map(f => f.driveId ? { nombre: f.nombre, driveId: f.driveId } : { nombre: f.nombre, url: f.url }),
+  };
+  document.querySelectorAll("#ia-acciones .accion").forEach(b => b.disabled = true);
+  try {
+    await apiIA("/api/lanzar", cuerpo);
+    toast(`<b>${esc(nombreAccion(accion))}</b> lanzado. El resultado aparecerá aquí.`);
+  } catch(e){
+    if(e.status === 409) toast("El sistema está en uso. Espera a que termine el análisis en curso.");
+    else toast(`No se pudo lanzar: ${esc(String(e.message || e))}`);
+  }
+  await cargarEstadoIA();
+}
+
+function bloqueResultado(e){
+  const docu = (e.fileId ? `<a class="btn-pri ia-bajar" href="${enlaceDescarga(e.fileId)}" download>Descargar ${esc(e.nombre || "documento")}</a>` : "")
+    + (e.extras || []).filter(x => x && x.fileId).map(x =>
+      `<a class="btn-sec ia-bajar" href="${enlaceDescarga(x.fileId)}" download style="margin-left:8px">Descargar ${esc(x.nombre || "documento")}</a>`).join("");
+  const omit = (e.omitidos || []).length ? `<div class="ia-omit"><b>No se analizaron:</b><ul>${
+    e.omitidos.map(o => `<li>${esc(o.nombre)} — ${esc(o.motivo)}</li>`).join("")}</ul></div>` : "";
+  const aviso = e.aviso ? `<p class="mini" style="color:var(--alerta)">${esc(e.aviso)}</p>` : "";
+  return `${docu}${aviso}${omit}${e.texto ? `<div class="ia-salida" style="margin-top:12px">${esc(e.texto)}</div>` : ""}`;
+}
+
+function bloqueRescate(licId, accion, e){
+  const archivos = (e.rescate || []).filter(x => x && x.fileId).map(x =>
+    `<a class="btn-sec ia-bajar" href="${enlaceDescarga(x.fileId)}" download style="margin-right:8px">Descargar ${esc(x.nombre || "documento")}</a>`).join("");
+  const retomar = e.reanudar
+    ? `<button class="btn-pri ia-bajar" data-retomar-lic="${esc(licId)}" data-retomar-acc="${esc(accion)}" style="margin-right:8px">Retomar desde el análisis guardado</button>`
+    : "";
+  if(!archivos && !retomar) return "";
+  const nota = e.reanudar
+    ? "Se guardó el análisis ya hecho. Al retomar se salta el análisis y solo se paga la redacción. No hace falta volver a subir los ficheros."
+    : "Se guardó lo que ya se había generado.";
+  return `<div style="margin-top:12px"><p class="mini">${nota}</p>${retomar}${archivos}</div>`;
+}
+
+async function retomarIA(licId, accion){
+  const e = estadoDe(licId, accion);
+  if(!e || !e.reanudar){ toast("No hay nada guardado para retomar."); return; }
+  if(estadoIA && estadoIA.ocupado){ toast("El sistema está en uso. Espera a que termine el análisis en curso."); return; }
+  const l = (estadoIA.licitaciones || {})[licId] || {};
+  document.getElementById("modal-analisis").hidden = true;
+  lanzadaIA = { licId, accion };
+  try {
+    await apiIA("/api/lanzar", {
+      accion,
+      licitacion: { id: licId, expediente: l.expediente || "", titulo: l.titulo || "", organo: l.organo || "" },
+      documentos: [],
+      contexto: { reanudar: e.reanudar },
+    });
+    toast(`<b>${esc(nombreAccion(accion))}</b> retomado: solo se repite la redacción.`);
+  } catch(err){
+    if(err.status === 409) toast("El sistema está en uso. Espera a que termine el análisis en curso.");
+    else toast(`No se pudo retomar: ${esc(String(err.message || err))}`);
+  }
+  await cargarEstadoIA();
+}
+
+document.addEventListener("click", ev => {
+  const b = ev.target.closest && ev.target.closest("[data-retomar-lic]");
+  if(b){ ev.preventDefault(); retomarIA(b.dataset.retomarLic, b.dataset.retomarAcc); }
+});
+
+function pintarResultado(){
+  const c = document.getElementById("ia-resultado");
+  if(!c) return;
+  if(!lanzadaIA){ c.hidden = true; return; }
+  const e = estadoDe(lanzadaIA.licId, lanzadaIA.accion);
+  c.hidden = false;
+  const nom = esc(nombreAccion(lanzadaIA.accion));
+  if(!e || e.estado === "procesando"){
+    c.innerHTML = `<div class="ia-va"><span class="ia-punto"></span> Analizando ${nom}${
+      e ? ` desde hace ${textoHace(e.desde)}` : "…"}. Puedes cerrar la página: el resultado quedará en el historial.</div>`;
+  } else if(e.estado === "listo"){
+    c.innerHTML = `<h4>${nom} · ${fechaLarga(e.fecha)}</h4>${bloqueResultado(e)}`;
+  } else {
+    c.innerHTML = `<h4>${nom} · falló</h4><p style="color:var(--alerta)">${esc(e.mensaje || "Error sin detalle")}</p>${
+      e.ayuda ? `<p class="mini">${esc(e.ayuda)}</p>` : ""}${bloqueRescate(lanzadaIA.licId, lanzadaIA.accion, e)}`;
+  }
+}
+
+function pintarHistorialIA(){
+  const c = document.getElementById("ia-hist");
+  if(!c) return;
+  if(!estadoIA){ c.innerHTML = `<p class="mini">Cargando…</p>`; return; }
+  if(estadoIA.error && !Object.keys(estadoIA.licitaciones || {}).length){
+    c.innerHTML = `<p class="mini" style="color:var(--alerta)">No se pudo cargar: ${esc(estadoIA.error)}</p>`;
+    return;
+  }
+  const fechaDe = a => a.fecha || a.desde || "";
+  const lics = Object.entries(estadoIA.licitaciones || {})
+    .map(([id, l]) => ({ id, l, ultima: Object.values(l.acciones || {}).map(fechaDe).sort().pop() || "" }))
+    .filter(x => Object.keys(x.l.acciones || {}).length)
+    .sort((a, b) => b.ultima.localeCompare(a.ultima));
+  if(!lics.length){ c.innerHTML = `<p class="mini">Todavía no hay análisis. Los que lances aparecerán aquí.</p>`; return; }
+  c.innerHTML = lics.map(({ id, l }) => {
+    const abierta = histAbierta === id;
+    const acc = Object.entries(l.acciones || {});
+    return `<div class="hist-lic">
+      <button class="hist-cab" data-lic="${esc(id)}" aria-expanded="${abierta}">
+        <span class="hist-flecha">${abierta ? "▾" : "▸"}</span>
+        <span class="hist-tit" title="${esc(l.titulo || "")}">${esc(l.titulo || id)}</span>
+        <span class="n">${acc.length}</span>
+      </button>
+      ${abierta ? `<div class="hist-lista">${acc.map(([accion, a]) => `
+        <button class="hist-item" data-lic="${esc(id)}" data-acc="${esc(accion)}" ${a.estado === "procesando" ? "disabled" : ""}>
+          <b>${esc(nombreAccion(accion))}</b>
+          <small>${a.estado === "listo" ? `Hecho el ${fechaLarga(a.fecha)}`
+            : a.estado === "error" ? `Falló el ${fechaLarga(a.fecha)}`
+            : `Analizando desde hace ${textoHace(a.desde)}`}</small>
+        </button>`).join("")}</div>` : ""}
+    </div>`;
+  }).join("");
+  c.querySelectorAll(".hist-cab").forEach(b => b.addEventListener("click", () => {
+    histAbierta = histAbierta === b.dataset.lic ? null : b.dataset.lic;
+    pintarHistorialIA();
+  }));
+  c.querySelectorAll(".hist-item").forEach(b => b.addEventListener("click", () => abrirDetalleIA(b.dataset.lic, b.dataset.acc)));
+}
+
+function abrirDetalleIA(licId, accion){
+  const e = estadoDe(licId, accion);
+  if(!e) return;
+  const l = (estadoIA.licitaciones || {})[licId] || {};
+  document.getElementById("man-titulo").textContent = nombreAccion(accion);
+  document.getElementById("man-meta").innerHTML = `<b>${esc(l.titulo || "")}</b><br>`
+    + (e.estado === "listo" ? `Hecho el ${fechaLarga(e.fecha)}${e.modelo ? ` · ${esc(e.modelo)}` : ""}${e.segundos ? ` · ${e.segundos}s` : ""}`
+      : `Falló el ${fechaLarga(e.fecha)}`);
+  if(e.estado === "listo"){
+    document.getElementById("man-docs").innerHTML = bloqueResultado({ ...e, texto: "" });
+    document.getElementById("man-texto").textContent = e.texto || "(sin resumen)";
+  } else {
+    document.getElementById("man-docs").innerHTML = (e.ayuda ? `<p class="mini">${esc(e.ayuda)}</p>` : "")
+      + bloqueRescate(licId, accion, e);
+    document.getElementById("man-texto").textContent = e.mensaje || "Error sin detalle";
+  }
+  document.getElementById("man-rehacer").onclick = () => {
+    document.getElementById("modal-analisis").hidden = true;
+    const fila = filas.find(r => r.id === licId);
+    const propia = !fila && licId.startsWith("propia-");
+    if(!fila && !propia){ toast("Esa licitación no está en el mes cargado."); return; }
+    if(!licIA || licIA.id !== licId){
+      elegirLicitacion(fila || { id: licId, titulo: l.titulo || "", organo: l.organo || "", idLegible: l.expediente || "", propia: true });
+    }
+    document.getElementById("ia-acciones").scrollIntoView({ behavior: "smooth", block: "center" });
+    toast(propia
+      ? "Los ficheros subidos a mano se borran al terminar cada análisis: súbelos de nuevo y pulsa la acción."
+      : "Revisa los ficheros marcados y pulsa la acción para lanzarla de nuevo.");
+  };
+  document.getElementById("modal-analisis").hidden = false;
+}
+
+const cerrarDetalleIA = () => { document.getElementById("modal-analisis").hidden = true; };
+document.getElementById("man-cerrar").addEventListener("click", cerrarDetalleIA);
+document.getElementById("man-ok").addEventListener("click", cerrarDetalleIA);
+document.getElementById("modal-analisis").addEventListener("click", e => {
+  if(e.target.id === "modal-analisis") cerrarDetalleIA();
+});
+
+
+function pintarPanelIA(){
+  const p = document.getElementById("panel-ia");
+  const porId = new Map(filas.map(f=>[f.id, f]));
+  const lista = Object.entries(analisisIA).map(([iid, a])=>{
+    const r = porId.get(iid);
+    return {
+      iid,
+      organo: r ? r.organo : "",
+      titulo: (r && r.titulo) || a.titulo || "(sin título)",
+      idLegible: (r && r.idLegible) || a.idLegible || "",
+      importante: r ? r.importante : false,
+      enTabla: !!r,
+      fecha: a.fecha,
+    };
+  }).sort((x,y)=> (y.importante - x.importante) || x.organo.localeCompare(y.organo));
+
+  if(!lista.length){
+    p.innerHTML = `<div class="vetados-cab"><h2>Análisis IA</h2></div>
+      <p class="ayuda">Todavía no hay análisis en esta hoja. Marca la casilla de
+      Análisis IA en la tabla y pulsa el botón de la cabecera.</p>`;
+    return;
+  }
+  const nImp = lista.filter(x=>x.importante).length;
+  p.innerHTML = `
+    <div class="vetados-cab"><h2>Análisis IA</h2><span class="n">${lista.length}</span></div>
+    <p class="ayuda">${nImp} de ${lista.length} están marcadas como importantes.</p>
+    <table class="t-ia">
+      <thead><tr><th>Órgano</th><th>Título</th><th>Analizado</th><th></th></tr></thead>
+      <tbody>
+        ${lista.map(x=>`
+          <tr class="${x.importante?"importante":""}" data-iid="${esc(x.iid)}">
+            <td class="ia-organo">${esc(x.organo) || '<span class="ia-fuera">no está en esta hoja</span>'}</td>
+            <td class="ia-titulo">${esc(x.titulo)}
+              ${x.idLegible?`<span class="ia-id mono">${esc(x.idLegible)}</span>`:""}</td>
+            <td class="mono fecha">${esc(x.fecha)}</td>
+            <td><button class="btn-ver-ia">Ver</button></td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+
+  p.querySelectorAll(".btn-ver-ia").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const iid = b.closest("tr").dataset.iid;
+      const r = porId.get(iid) || {
+        id: iid,
+        titulo: (analisisIA[iid] && analisisIA[iid].titulo) || "",
+        idLegible: (analisisIA[iid] && analisisIA[iid].idLegible) || "",
+      };
+      abrirAnalisis(r);
+    });
+  });
+}
+
+function pintarCambios(){
+  const p = document.getElementById("panel-cambios");
+  if(!cambiosEstado.length){
+    p.innerHTML = `<div class="vetados-cab"><h2>Cambios de estado</h2></div>
+      <p class="ayuda">Este mes no hay cambios de estado registrados.</p>`;
+    return;
+  }
+  p.innerHTML = `
+    <div class="vetados-cab"><h2>Cambios de estado</h2>
+      <span class="n">${cambiosEstado.length}</span></div>
+    <p class="ayuda">Licitaciones cuyo estado cambió después de entrar en el Sheet
+      (adjudicaciones, resoluciones, anulaciones, re-aperturas).</p>
+    <table class="t-cambios">
+      <thead><tr><th>Detectado</th><th>ID</th><th>Título</th><th>Cambio</th><th></th></tr></thead>
+      <tbody>
+        ${cambiosEstado.map(c=>`
+          <tr>
+            <td class="mono fecha">${esc(c.fecha)}</td>
+            <td class="mono fecha">${esc(c.idLegible)}</td>
+            <td class="c-titulo">${esc(c.titulo)}</td>
+            <td class="c-cambio"><span class="c-antes">${esc(c.antes)}</span>
+              <span class="c-flecha">→</span> <b>${esc(c.despues)}</b></td>
+            <td>${c.enlace ? `<a href="${esc(c.enlace)}" target="_blank" rel="noopener">Abrir</a>` : ""}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+/* Confirmacion a juego con el panel, en vez del cuadro gris del navegador.
+   Devuelve una promesa: true si confirma, false si cancela. */
+function confirmar({titulo, texto, ok = "Confirmar"}){
+  return new Promise(resolve => {
+    const caja = document.getElementById("modal-conf");
+    const bSi = document.getElementById("conf-si");
+    const bNo = document.getElementById("conf-no");
+    document.getElementById("conf-titulo").textContent = titulo;
+    document.getElementById("conf-texto").textContent = texto || "";
+    bSi.textContent = ok;
+    bSi.className = "btn-pri";
+    caja.hidden = false;
+    bSi.focus();
+
+    const cerrar = (valor) => {
+      caja.hidden = true;
+      bSi.onclick = null; bNo.onclick = null; caja.onclick = null;
+      window.removeEventListener("keydown", tecla);
+      resolve(valor);
+    };
+    const tecla = (e) => {
+      if(e.key === "Escape") cerrar(false);
+      if(e.key === "Enter") cerrar(true);
+    };
+    bSi.onclick = () => cerrar(true);
+    bNo.onclick = () => cerrar(false);
+    caja.onclick = (e) => { if(e.target === caja) cerrar(false); };
+    window.addEventListener("keydown", tecla);
+  });
+}
+
+function abrirDocumentos(r){
+  // Solo adjuntos: PCAP y PPT tienen su propia columna en la tabla y
+  // repetirlos aqui solo añade ruido.
+  const adj = (r.adj || []).map(a => ({...a, tipo:"DOC"}));
+
+  const fila = (d) => `<a class="doc" href="${esc(d.url)}" target="_blank" rel="noopener">
+      <span class="doc-ico">${esc(d.tipo)}</span>
+      <span class="doc-nom">${esc(d.nombre)}<span class="doc-url">${esc(d.url)}</span></span>
+    </a>`;
+
+  document.getElementById("adj-titulo").textContent = r.titulo;
+  document.getElementById("adj-meta").textContent = r.idLegible || "";
+  document.getElementById("adj-lista").innerHTML =
+    (adj.length ? `<div class="doc-grupo"><h4>Adjuntos</h4>${adj.map(fila).join("")}</div>` : "")
+    + (r.masAdj ? `<div class="doc-grupo"><h4>Más documentos</h4>${
+        fila({...r.masAdj, tipo:"WEB"})}</div>` : "")
+    || `<p class="ayuda">Esta licitación no tiene adjuntos.</p>`;
+  document.getElementById("modal-adj").hidden = false;
+}
+document.getElementById("adj-cerrar").addEventListener("click", ()=>{ document.getElementById("modal-adj").hidden = true; });
+document.getElementById("modal-adj").addEventListener("click", e=>{ if(e.target.id === "modal-adj") e.currentTarget.hidden = true; });
+
+function abrirAnalisis(r){
+  const a = analisisIA[r.id];
+  document.getElementById("m-titulo").textContent = r.titulo;
+  document.getElementById("m-meta").textContent =
+    `${r.idLegible || ""}${a && a.fecha ? " · analizado el " + a.fecha : ""}`;
+  document.getElementById("m-resumen").textContent =
+    a ? (a.resumen || "(sin resumen)") : "No encuentro este análisis en la pestaña «Análisis IA» del Sheet.";
+  document.getElementById("m-solvencia").textContent = a ? (a.solvencia || "(sin análisis de solvencia)") : "";
+  document.getElementById("modal-ia").hidden = false;
+}
+document.getElementById("m-cerrar").addEventListener("click", ()=>{ document.getElementById("modal-ia").hidden = true; });
+document.getElementById("modal-ia").addEventListener("click", e=>{ if(e.target.id === "modal-ia") e.currentTarget.hidden = true; });
+window.addEventListener("keydown", e=>{
+  if(e.key === "Escape"){
+    document.getElementById("modal-ia").hidden = true;
+    document.getElementById("modal-adj").hidden = true;
+    if(!document.getElementById("modal-lic").hidden) cerrarSelectorLic();
+  }
+});
+
+document.getElementById("f-cat").addEventListener("change", e=>{ catFiltro = e.target.value; pintarTabla(); });
+document.getElementById("buscar").addEventListener("input", e=>{ busca = e.target.value; pintarTabla(); });
+
+const selMes = document.getElementById("mes");
+function poblarMeses(){
+  const actual = selMes.value;
+  selMes.innerHTML = "";
+  MESES.forEach(m=>{ const o=document.createElement("option"); o.value=m; o.textContent=m.slice(0,4)+"-"+m.slice(4); selMes.appendChild(o); });
+  selMes.value = MESES.includes(actual) ? actual : mesActual;
+}
+selMes.addEventListener("change", async e=>{
+  if(cola.size || enVuelo) await vaciar();
+  mesActual = e.target.value;
+  filas = []; expandidas.clear();
+  toast(`Cargando <b>${e.target.selectedOptions[0].textContent}</b>…`);
+  try{
+    await refrescar();
+  }catch(err){
+    console.error("Fallo al cargar el mes:", err.status, err.paso, err.message);
+    toast(`No se pudo cargar el mes: ${esc(err.message || err)}`);
+  }
+});
+
+function toast(html, esVeto){
+  const d = document.createElement("div");
+  d.className = "toast" + (esVeto ? " veto" : "");
+  d.innerHTML = html;
+  document.getElementById("toasts").appendChild(d);
+  setTimeout(()=>d.remove(), 3600);
+}
+function avisar(t){ const e=document.getElementById("f-aviso"); e.textContent=t; e.hidden=false; }
+function ocultarAviso(){ document.getElementById("f-aviso").hidden = true; }
+
+document.getElementById("btn-guardar").addEventListener("click", ()=>vaciar());
+
+document.getElementById("bv-cancelar").addEventListener("click", ()=>{
+  vetosPend.clear();
+  pintarBarraVetos();
+  pintarTabla();
+});
+
+document.getElementById("bv-confirmar").addEventListener("click", async ()=>{
+  const n = vetosPend.size;
+  if(!n) return;
+  const claves = new Set(vetosPend.keys());
+  const filasFuera = filas.filter(r => claves.has(normVeto(r.organo))).length;
+  const nombres = [...vetosPend.values()].slice(0, 8).join("\n· ");
+  const ok = await confirmar({
+    titulo: `¿Vetar ${n} organismo${n>1?"s":""}?`,
+    texto: `· ${nombres}${n > 8 ? `\n… y ${n - 8} más` : ""}\n\n`
+         + `Desaparecerá${filasFuera>1?"n":""} ${filasFuera} licitaci${filasFuera>1?"ones":"ón"} de esta hoja `
+         + `y el bot dejará de recolectar sus licitaciones a partir de mañana.\n\n`
+         + `Se puede deshacer desde la pestaña Vetados.`,
+    ok: "Confirmar",
+  });
+  if(!ok) return;
+
+  const hoy = new Date().toISOString().slice(0,10);
+  for(const organo of vetosPend.values()){
+    const limpio = organo.replace(/\s*\((?:espa[nñ]a|spain)\)\s*$/i,"").trim();
+    const item = {nombre:limpio, desde:hoy};
+    vetados.unshift(item);
+    blPend.anadir.set(normVeto(limpio), item);
+    blPend.quitar.delete(normVeto(limpio));
+    encolar("blacklist", "veto_anadir", organo);
+  }
+  vetosPend.clear();
+  pintarBarraVetos();
+  pintar();
+  toast(`<b>${n}</b> organismo${n>1?"s":""} vetado${n>1?"s":""} · `
+      + `${filasFuera} fila${filasFuera>1?"s":""} fuera`, true);
+});
+
+document.getElementById("btn-salir").addEventListener("click", async ()=>{
+  // Guardar lo pendiente antes de salir: si no, los clics de los ultimos
+  // minutos se perderian sin aviso.
+  if(cola.size || enVuelo){
+    const ok = await confirmar({
+      titulo: "Hay cambios sin guardar",
+      texto: `${cola.size} cambio(s) todavía no se han escrito en la hoja. `
+           + `Se guardarán antes de salir.`,
+      ok: "Guardar y salir",
+    });
+    if(!ok) return;
+    await vaciar();
+  }
+  try{ localStorage.removeItem("avancem_key"); }catch(e){}
+  CLAVE = "";
+  filas = []; vetados = []; analisisIA = {}; cambiosEstado = [];
+  vetosPend.clear(); expandidas.clear();
+  usuarioPanel = null; rolPanel = "admin"; puedeIAPanel = false; vista = "licitaciones"; pestana = "licitaciones";
+  cfgCargada = false;
+  pintar();
+  document.documentElement.classList.remove("con-clave");
+  document.getElementById("portal").style.display = "flex";
+  const k = document.getElementById("portal-key");
+  k.value = ""; k.focus();
+  document.getElementById("portal-err").textContent = "";
+});
+
+document.getElementById("btn-recargar").addEventListener("click", async ()=>{
+  const b = document.getElementById("btn-recargar");
+  b.disabled = true; b.textContent = "Leyendo…";
+  try{
+    if(cola.size || enVuelo) await vaciar();   // no perder lo pendiente
+    await refrescar(true);
+    pintar();
+    toast("Datos recargados desde el Sheet");
+  }catch(e){
+    toast(`No se pudo recargar: ${esc(e.message || e)}`);
+  }finally{
+    b.disabled = false; b.textContent = "Recargar";
+  }
+});
+
+window.addEventListener("pagehide", ()=>{
+  if(!cola.size) return;
+  try{
+    const cuerpo = JSON.stringify({key: CLAVE, sheet_id: SHEET_ID, cambios: [...cola.values()]});
+    if(navigator.sendBeacon("/api/guardar", new Blob([cuerpo], {type:"application/json"}))){
+      cola.clear();
+      marcarEscrito(mesActual);
+    }
+  }catch(e){}
+});
+window.addEventListener("beforeunload", e=>{ if(enVuelo){ e.preventDefault(); e.returnValue=""; } });
+
+async function entrar(){
+  document.getElementById("portal-err").textContent = "";
+  try{
+    await refrescar();
+    document.getElementById("portal").style.display = "none";
+    document.documentElement.classList.add("con-clave");
+    try{ localStorage.setItem("avancem_key", CLAVE); }catch(e){}
+  }catch(e){
+    document.documentElement.classList.remove("con-clave");
+    document.getElementById("portal").style.display = "flex";
+    const p = document.getElementById("portal-err");
+    p.textContent = e.status ? `Error ${e.status}: ${e.message}` : String(e.message || e);
+    console.error("Fallo al entrar:", e.status, e.motivo, e.message);
+  }
+}
+document.getElementById("portal-form").addEventListener("submit", e=>{
+  e.preventDefault();
+  CLAVE = document.getElementById("portal-key").value.trim();
+  entrar();
+});
+const qsKey = new URLSearchParams(location.search).get("key");
+if(qsKey){
+  CLAVE = qsKey;
+  try{ history.replaceState(null, "", location.pathname); }catch(e){}
+}
+if(CLAVE) entrar();
+
+pintar();
+setInterval(pintarGauge, 1000);
+
+let sondeo = null;
+function iniciarSondeo(){
+  if(sondeo) return;
+  sondeo = setInterval(async ()=>{
+    await refrescar();
+    if(!filas.some(r=>r.iaEstado === "corriendo")){ clearInterval(sondeo); sondeo = null; }
+  }, REFRESCO_MS);
+}
+</script>
+</body>
+</html>
